@@ -118,6 +118,81 @@ export default {
           authority: ['admin', 'user'],
           routes: [
             {
+              name: 'account',
+              icon: 'user',
+              path: '/account',
+              routes: [
+                {
+                  name: 'work',
+                  icon: 'smile',
+                  path: '/account/work',
+                  component: './account/work',
+                },
+                {
+                  name: 'bean',
+                  icon: 'smile',
+                  path: '/account/bean',
+                  component: './account/bean',
+                },
+                {
+                  name: 'buyBean',
+                  icon: 'smile',
+                  path: '/account/buy-bean',
+                  component: './account/buybean',
+                },
+                {
+                  name: 'toUp',
+                  icon: 'smile',
+                  path: '/account/to-up',
+                  component: './account/toup',
+                },
+                {
+                  name: 'invite',
+                  icon: 'smile',
+                  path: '/account/invite',
+                  component: './account/invite',
+                },
+                // {
+                //   name: 'center',
+                //   icon: 'smile',
+                //   path: '/account/center',
+                //   component: './account/center',
+                // },
+                // {
+                //   name: 'settings',
+                //   icon: 'smile',
+                //   path: '/account/settings',
+                //   component: './account/settings',
+                // },
+              ],
+            },
+            {
+              path: '/merchants',
+              name: 'merchants',
+              icon: 'dashboard',
+              routes: [
+                {
+                  name: 'record',
+                  icon: 'smile',
+                  path: '/merchants/record-list',
+                  component: './merchants/record',
+                },
+              ]
+            },
+            {
+              path: '/order',
+              name: 'order',
+              icon: 'list',
+              routes: [
+                {
+                  name: 'order',
+                  icon: 'smile',
+                  path: '/order/order-list',
+                  component: './order/orderRecord',
+                },
+              ]
+            },
+            {
               path: '/dashboard',
               name: 'dashboard',
               icon: 'dashboard',
@@ -285,25 +360,6 @@ export default {
               ],
             },
             {
-              name: 'account',
-              icon: 'user',
-              path: '/account',
-              routes: [
-                {
-                  name: 'center',
-                  icon: 'smile',
-                  path: '/account/center',
-                  component: './account/center',
-                },
-                {
-                  name: 'settings',
-                  icon: 'smile',
-                  path: '/account/settings',
-                  component: './account/settings',
-                },
-              ],
-            },
-            {
               name: 'editor',
               icon: 'highlight',
               path: '/editor',
@@ -330,7 +386,7 @@ export default {
             },
             {
               path: '/',
-              redirect: '/dashboard/analysis',
+              redirect: '/account/work',
               authority: ['admin', 'user'],
             },
             {

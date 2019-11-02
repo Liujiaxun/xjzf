@@ -192,6 +192,7 @@ const getFakeChartData = {
   salesTypeDataOffline,
   radarData,
 };
+console.log(getFakeChartData);
 export default {
   'GET  /api/fake_chart_data': getFakeChartData,
 };
