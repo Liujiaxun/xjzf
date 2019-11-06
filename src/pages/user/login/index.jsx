@@ -1,92 +1,152 @@
-import {Alert, Form, Input, Row, Col, Button} from 'antd';
-import {FormattedMessage, formatMessage} from 'umi-plugin-react/locale';
+import {Alert, Form, Input, Row, Col, Button, message} from 'antd';
 import React, {Component} from 'react';
 import Link from 'umi/link';
 import {connect} from 'dva';
-import LoginComponents from './components/Login';
 import styles from './style.less';
 import logo4 from '../../../assets/logo-4.png';
+import {Redirect} from "umi";
+import {tokenKey} from "@/config/baseConfig";
 
-const {Tab, UserName, Password, Mobile, Captcha, Submit} = LoginComponents;
-
-@connect(({userAndlogin, loading}) => ({
-  userAndlogin,
-  submitting: loading.effects['userAndlogin/login'],
+@connect(({login, loading}) => ({
+  login,
+  submitting: loading.effects['login/login'],
 }))
 class Login extends Component {
-  loginForm = undefined;
-  state = {
-    type: 'account',
-    autoLogin: true,
-    weCode: false
-  };
-  changeAutoLogin = e => {
-    this.setState({
-      autoLogin: e.target.checked,
-    });
-  };
-  handleSubmit = (err, values) => {
-    const {type} = this.state;
+  constructor(props) {
+    super(props)
+    const query = props.location.query;
+    console.log(query);
 
-    if (!err) {
-      const {dispatch} = this.props;
-      dispatch({
-        type: 'userAndlogin/login',
-        payload: {...values, type},
-      });
-    }
-  };
-  onTabChange = type => {
-    this.setState({
-      type,
-    });
-  };
-  onGetCaptcha = () =>
-    new Promise((resolve, reject) => {
-      if (!this.loginForm) {
-        return;
-      }
-
-      this.loginForm.validateFields(['mobile'], {}, (err, values) => {
-        if (err) {
-          reject(err);
-        } else {
-          const {dispatch} = this.props;
-          dispatch({
-            type: 'userAndlogin/getCaptcha',
-            payload: values.mobile,
-          })
-            .then(resolve)
-            .catch(reject);
-        }
-      });
-    });
-  renderMessage = content => (
-    <Alert
-      style={{
-        marginBottom: 24,
-      }}
-      message={content}
-      type="error"
-      showIcon
-    />
-  );
+    this.state = {
+      type: 'account',
+      disabledGetCodeButton: true,
+      getCodeButtonHtml: '获取验证码',
+      isGetCode: false,
+      time: 60,
+      invitefrom: query.f,
+      phone_authencode_id: '',
+    };
+  }
 
   handleSubmit = e => {
     e.preventDefault();
+    const self = this;
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        console.log('Received values of form: ', values);
+        self.props.dispatch({
+          type: 'login/postSubmitRegisterPhone',
+          payload: {
+            ...values,
+            phone_authencode_id: self.state.phone_authencode_id,
+          },
+        }).then(res => {
+          if (res.status) {
+            self.history.push('/')
+          } else if (self.state.phone_authencode_id === '') {
+            message.error('验证码不正确')
+          } else {
+            message.error(res.message)
+          }
+        })
       }
     });
   }
 
-  render() {
-    const {userAndlogin, submitting} = this.props;
-    const {status, type: loginType} = userAndlogin;
-    const {type, autoLogin} = this.state;
-    const { getFieldDecorator } = this.props.form;
+  checkLoginStatus = () => {
+    const {data} = this.props.login
+    const {ctime, mid, scene_id} = data
+    if (mid && scene_id) {
+      this.props.dispatch({
+        type: 'login/checkLoginStatus',
+        payload: {
+          mid,
+          scene_id,
+        },
+      }).then(res => {
+        if (res.status) {
+          message.success('扫码成功')
+          clearInterval(this.checkLogin)
+          window.localStorage.setItem(tokenKey, res.data.token)
+          window.localStorage.setItem('uid', res.data.id)
+        }
+      })
+    }
+  }
 
+  handleGetCode = () => {
+    const self = this;
+    const phone = this.props.form.getFieldValue('phone');
+    this.props.dispatch({
+      type: 'login/postGetVCode',
+      payload: {
+        phone,
+        type: 'register',
+      },
+    }).then(res => {
+      if (!res.status) {
+        message.error(res.message)
+        return;
+      }
+      self.setState({
+        disabledGetCodeButton: true,
+        time: 60,
+        phone_authencode_id: res.data.phone_authencode_id
+      })
+      self.getCodeInterVal = setInterval(() => {
+        const {time} = self.state;
+        if (time >= 0) {
+          self.setState({
+            getCodeButtonHtml: time + 's',
+          }, () => {
+            self.setState({
+              time: time - 1,
+            })
+          })
+        } else {
+          clearInterval(self.getCodeInterVal)
+          self.setState({
+            getCodeButtonHtml: '获取验证码',
+            disabledGetCodeButton: false,
+          })
+        }
+      }, 1000)
+    })
+  }
+
+  onPhoneInputChange = e => {
+    if (/^1[3456789]\d{9}$/.test(e.target.value)) {
+      this.setState({
+        disabledGetCodeButton: false,
+      })
+    } else {
+      this.setState({
+        disabledGetCodeButton: true,
+      })
+    }
+  }
+
+  componentDidMount() {
+    this.props.dispatch({
+      type: 'login/getLoginWeChatCode',
+    })
+    this.checkLogin = setInterval(() => {
+      this.checkLoginStatus()
+    }, 5000)
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.checkLogin)
+    clearInterval(this.getCodeInterVal)
+  }
+
+  render() {
+    const {data, isLogin, user} = this.props.login;
+    const {qrurl} = data
+    const {getFieldDecorator} = this.props.form;
+    const {invitefrom} = this.state;
+    if (isLogin && user.phone !== '') {
+      return <Redirect to="/"></Redirect>
+    }
     return (
       <div className={styles.main}>
         <div className={styles.loginLeft}>
@@ -107,13 +167,13 @@ class Login extends Component {
         </div>
 
         {
-          !this.state.weCode ? (
+          !isLogin ? (
               <div className={styles.loginBox}>
                 <h3>账号注册及登录</h3>
                 <div className={styles.title}>微信扫一扫</div>
                 <div className={styles.wechatPhoto}>
                   <div>
-                    <img src="" alt=""/>
+                    <img src={qrurl} alt=""/>
                   </div>
                 </div>
                 <div className={styles.hintSpan}>打开微信扫一扫，经公众号验证后即可登陆</div>
@@ -125,7 +185,7 @@ class Login extends Component {
                 <div className={styles.registerPhone}>
                   <Form onSubmit={this.handleSubmit}>
                     <Form.Item>
-                      {getFieldDecorator('name', {
+                      {getFieldDecorator('realname', {
                         rules: [
                           {
                             required: true,
@@ -143,16 +203,23 @@ class Login extends Component {
                                 required: true,
                                 message: '请输入电话号码！',
                               },
+                              {
+                                pattern: /^1[3456789]\d{9}$/,
+                                message: '请输入合法的手机号',
+                              },
                             ],
-                          })(<Input placeholder="手机号码"/>)}
+                          })(<Input placeholder="手机号码" onChange={v => this.onPhoneInputChange(v)}/>)}
                         </Col>
                         <Col span={8}>
-                          <Button>发送验证码</Button>
+                          <Button disabled={this.state.disabledGetCodeButton}
+                                  onClick={this.handleGetCode} style={{width: '100%'}}>
+                            {this.state.getCodeButtonHtml}
+                          </Button>
                         </Col>
                       </Row>
                     </Form.Item>
                     <Form.Item>
-                      {getFieldDecorator('vcode', {
+                      {getFieldDecorator('authencode', {
                         rules: [
                           {
                             required: true,
@@ -160,6 +227,11 @@ class Login extends Component {
                           },
                         ],
                       })(<Input placeholder="验证码"/>)}
+                    </Form.Item>
+                    <Form.Item>
+                      {getFieldDecorator('invitefrom', {
+                        initialValue: invitefrom,
+                      })(<Input placeholder="邀请码"/>)}
                     </Form.Item>
                     <Button type="primary" htmlType="submit" size="large" className={styles.loginFormButton}>
                       确定

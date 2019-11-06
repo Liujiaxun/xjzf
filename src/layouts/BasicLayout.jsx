@@ -149,9 +149,9 @@ const BasicLayout = props => {
         {...props}
         {...settings}
       >
-        <Authorized authority={authorized.authority} noMatch={noMatch}>
+        {/*<Authorized authority={authorized.authority} noMatch={noMatch}>*/}
           {children}
-        </Authorized>
+        {/*</Authorized>*/}
       </ProLayout>
       <SettingDrawer
         settings={settings}

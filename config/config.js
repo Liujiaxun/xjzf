@@ -177,12 +177,30 @@ export default {
                   path: '/merchants/record-list',
                   component: './merchants/record',
                 },
+                {
+                  name: 'apply',
+                  icon: 'smile',
+                  path: '/merchants/apply',
+                  component: './merchants/apply',
+                },
+                {
+                  name: 'business',
+                  icon: 'smile',
+                  path: '/merchants/my-business',
+                  component: './merchants/myBusiness',
+                },
+                {
+                  name: 'online',
+                  icon: 'smile',
+                  path: '/merchants/online-demo',
+                  component: './merchants/onlineDemo',
+                },
               ]
             },
             {
               path: '/order',
               name: 'order',
-              icon: 'list',
+              icon: 'unordered-list',
               routes: [
                 {
                   name: 'order',

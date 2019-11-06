@@ -54,7 +54,10 @@ export default {
   'menu.editor.mind': '脑图编辑器',
   'menu.editor.koni': '拓扑编辑器',
   'menu.merchants': '支付商户',
+  'menu.merchants.apply': '商户申请',
+  'menu.merchants.business': '我的商户',
   'menu.merchants.record': '申请记录',
+  'menu.merchants.online': '在线体验',
   'menu.order': '订单管理',
   'menu.order.order': '订单记录',
 };
