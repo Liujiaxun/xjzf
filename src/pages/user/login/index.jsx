@@ -68,6 +68,7 @@ class Login extends Component {
           clearInterval(this.checkLogin)
           window.localStorage.setItem(tokenKey, res.data.token)
           window.localStorage.setItem('uid', res.data.id)
+          this.props.history.push('/')
         }
       })
     }
@@ -144,9 +145,7 @@ class Login extends Component {
     const {qrurl} = data
     const {getFieldDecorator} = this.props.form;
     const {invitefrom} = this.state;
-    if (isLogin && user.phone !== '') {
-      return <Redirect to="/"></Redirect>
-    }
+
     return (
       <div className={styles.main}>
         <div className={styles.loginLeft}>

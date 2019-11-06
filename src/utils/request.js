@@ -5,6 +5,7 @@
 import {extend} from 'umi-request';
 import {notification} from 'antd';
 import {getToken, isLogin} from "@/utils/utils";
+import {baseUrl} from "@/config/baseConfig";
 // import qs from 'qs'
 const codeMessage = {
   200: '服务器成功返回请求的数据。',
@@ -61,20 +62,28 @@ const request = extend({
   },
   // credentials: 'include', // 默认请求是否带上cookie
 });
-
+const checkUrl = [
+  baseUrl + '/user/qrlogin',
+  baseUrl + '/user/wechatlogin',
+  // baseUrl + '/user/info',
+]
 request.interceptors.request.use((url, options) => {
-  const { method, params, data } = options
-  if (isLogin()) {
+  const {method, headers, params, data} = options
+  if (isLogin() && checkUrl.indexOf(url) < 0) {
+    const token = getToken()
+    options.headers = {
+      ...headers,
+      // "Authen-Token": token
+    }
+
     if (method === 'post' || method === 'POST') {
       options.data = {
         ...data,
-        token: getToken(),
         uid: localStorage.getItem('uid'),
       }
     } else {
       options.params = {
         ...params,
-        token: getToken(),
         uid: localStorage.getItem('uid'),
       }
     }

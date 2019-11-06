@@ -184,7 +184,7 @@ const Model = {
     changeLoginRegisterPhone(state, {payload}) {
       return {
         ...state,
-        isLogin: true,
+        isLogin: payload.phone !== '' ? false : true,
         user: payload,
       }
     }
