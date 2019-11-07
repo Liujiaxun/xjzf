@@ -23,6 +23,7 @@ import CreateForm from './components/CreateForm';
 import StandardTable from './components/StandardTable';
 import UpdateForm from './components/UpdateForm';
 import styles from './style.less';
+
 const FormItem = Form.Item;
 const { Option } = Select;
 
@@ -88,7 +89,7 @@ class TableList extends Component {
       title: '微信审核',
       dataIndex: 'status',
       render(val) {
-        return  <Badge status={statusMap[val]} text={status[val]} />;
+        return <Badge status={statusMap[val]} text={status[val]} />;
       },
     },
     {
@@ -322,7 +323,6 @@ class TableList extends Component {
               {getFieldDecorator('name')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
-
         </Row>
         <Row
           gutter={{
@@ -446,18 +446,9 @@ class TableList extends Component {
   }
 
   render() {
-    const {
-      listAndtableList: { data },
-      loading,
-    } = this.props;
+    const { loading } = this.props;
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
 
-    const menu = (
-      <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
-        <Menu.Item key="remove">删除</Menu.Item>
-        <Menu.Item key="approval">批量审批</Menu.Item>
-      </Menu>
-    );
     const parentMethods = {
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
@@ -474,7 +465,7 @@ class TableList extends Component {
             <StandardTable
               selectedRows={selectedRows}
               loading={loading}
-              data={data}
+              data={[]}
               columns={this.columns}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}

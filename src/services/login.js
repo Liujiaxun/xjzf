@@ -31,3 +31,9 @@ export async function postSubmitRegisterPhone(data) {
     data,
   });
 }
+
+export async function postLogout() {
+  return request(`${baseUrl}/user/logout`, {
+    method: 'POST',
+  });
+}

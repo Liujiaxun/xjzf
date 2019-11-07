@@ -1,4 +1,5 @@
-import {getUserInfo} from '@/services/user';
+import { getUserInfo } from '@/services/user';
+import { routerRedux } from 'dva/router';
 
 const UserModel = {
   namespace: 'user',
@@ -6,18 +7,20 @@ const UserModel = {
     currentUser: {},
   },
   effects: {
-    * getUserInfo(_, {call, put}) {
+    *getUserInfo(_, { call, put }) {
       try {
         const response = yield call(getUserInfo);
-        return response
-      } catch (e) {
-        console.log(e)
-      }
+        yield put({
+          type: 'saveCurrentUser',
+          payload: response.data,
+        });
+        return response;
+      } catch (e) {}
     },
   },
   reducers: {
     saveCurrentUser(state, action) {
-      return {...state, currentUser: action.payload || {}};
+      return { ...state, currentUser: action.payload || {} };
     },
 
     changeNotifyCount(

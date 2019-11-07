@@ -18,30 +18,6 @@ const GlobalHeaderRight = props => {
 
   return (
     <div className={className}>
-      <HeaderSearch
-        className={`${styles.action} ${styles.search}`}
-        placeholder={formatMessage({
-          id: 'component.globalHeader.search',
-        })}
-        defaultValue="umi ui"
-        dataSource={[
-          formatMessage({
-            id: 'component.globalHeader.search.example1',
-          }),
-          formatMessage({
-            id: 'component.globalHeader.search.example2',
-          }),
-          formatMessage({
-            id: 'component.globalHeader.search.example3',
-          }),
-        ]}
-        onSearch={value => {
-          console.log('input', value);
-        }}
-        onPressEnter={value => {
-          console.log('enter', value);
-        }}
-      />
       <Tooltip
         title={formatMessage({
           id: 'component.globalHeader.help',
@@ -56,9 +32,9 @@ const GlobalHeaderRight = props => {
           <Icon type="question-circle-o" />
         </a>
       </Tooltip>
-      <NoticeIconView />
+      {/*<NoticeIconView />*/}
       <Avatar menu />
-      <SelectLang className={styles.action} />
+      {/*<SelectLang className={styles.action} />*/}
     </div>
   );
 };

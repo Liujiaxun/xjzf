@@ -1,9 +1,15 @@
-import {routerRedux} from 'dva/router';
-import {stringify} from 'querystring';
-import {getLoginWeChatCode, postCheckLoginStatus, postGetVCode, postSubmitRegisterPhone} from '@/services/login';
-import {setAuthority} from '@/utils/authority';
-import {getPageQuery} from '@/utils/utils';
-import {tokenKey} from '../config/baseConfig'
+import { routerRedux } from 'dva/router';
+import { stringify } from 'querystring';
+import {
+  getLoginWeChatCode,
+  postCheckLoginStatus,
+  postGetVCode,
+  postSubmitRegisterPhone,
+  postLogout,
+} from '@/services/login';
+import { setAuthority } from '@/utils/authority';
+import { getPageQuery } from '@/utils/utils';
+import { tokenKey } from '../config/baseConfig';
 
 const Model = {
   namespace: 'login',
@@ -14,7 +20,7 @@ const Model = {
     user: {},
   },
   effects: {
-    * getLoginWeChatCode({payload}, {call, put}) {
+    *getLoginWeChatCode({ payload }, { call, put }) {
       try {
         const response = yield call(getLoginWeChatCode, payload);
         yield put({
@@ -23,18 +29,24 @@ const Model = {
         });
         return response;
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
     },
-    * postGetVCode({payload}, {call, put}) {
+    *postLogout(_, { call, put }) {
+      try {
+        const response = yield call(postLogout);
+        return response;
+      } catch (e) {}
+    },
+    *postGetVCode({ payload }, { call, put }) {
       try {
         const response = yield call(postGetVCode, payload);
         return response;
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
     },
-    * postSubmitRegisterPhone({payload}, {call, put}) {
+    *postSubmitRegisterPhone({ payload }, { call, put }) {
       try {
         const response = yield call(postSubmitRegisterPhone, payload);
         if (response && response.status) {
@@ -71,12 +83,9 @@ const Model = {
         // total_consume: "0.00"
         // total_recharge: "0.00"
         // unionid: "o52dVwPC3lmaG6hbT62eYG1LIVhk"
-      } catch (e) {
-
-      }
-    }
-    ,
-    * checkLoginStatus({payload}, {call, put}) {
+      } catch (e) {}
+    },
+    *checkLoginStatus({ payload }, { call, put }) {
       try {
         const response = yield call(postCheckLoginStatus, payload);
         if (response && response.data && response.data.token) {
@@ -85,7 +94,7 @@ const Model = {
             payload: response.data,
           });
         }
-        return response
+        return response;
 
         // amount: "0.00"
         // appid: "wx381c786fd6004313"
@@ -115,51 +124,13 @@ const Model = {
         // total_consume: "0.00"
         // total_recharge: "0.00"
         // unionid: "o52dVwM_b0Bf9MxMIw_gPfnqtL6k"
-      } catch (e) {
-
-      }
-    }
-    ,
-    * login({payload}, {call, put}) {
-      // const response = yield call(fakeAccountLogin, payload);
-      // yield put({
-      //   type: 'changeLoginStatus',
-      //   payload: response,
-      // }); // Login successfully
-      //
-      // if (response.status === 'ok') {
-      //   const urlParams = new URL(window.location.href);
-      //   const params = getPageQuery();
-      //   let {redirect} = params;
-      //
-      //   if (redirect) {
-      //     const redirectUrlParams = new URL(redirect);
-      //
-      //     if (redirectUrlParams.origin === urlParams.origin) {
-      //       redirect = redirect.substr(urlParams.origin.length);
-      //
-      //       if (redirect.match(/^\/.*#/)) {
-      //         redirect = redirect.substr(redirect.indexOf('#') + 1);
-      //       }
-      //     } else {
-      //       window.location.href = '/';
-      //       return;
-      //     }
-      //   }
-      //
-      //   yield put(routerRedux.replace(redirect || '/'));
-      // }
-    }
-    ,
-
-    * getCaptcha({payload}, {call}) {
+      } catch (e) {}
+    },
+    *getCaptcha({ payload }, { call }) {
       yield call(getFakeCaptcha, payload);
-    }
-    ,
-
-    * logout(_, {put}) {
-      const {redirect} = getPageQuery(); // redirect
-
+    },
+    *logout(_, { put }) {
+      const { redirect } = getPageQuery(); // redirect
       if (window.location.pathname !== '/user/login' && !redirect) {
         yield put(
           routerRedux.replace({
@@ -170,24 +141,29 @@ const Model = {
           }),
         );
       }
-    }
-    ,
+    },
   },
   reducers: {
-    changeLoginStatus(state, {payload}) {
+    changeLoginStatus(state, { payload }) {
       setAuthority(payload.currentAuthority);
-      return {...state, status: payload.status, type: payload.type};
+      return { ...state, status: payload.status, type: payload.type };
     },
-    changeLoginData(state, {payload}) {
-      return {...state, data: payload};
+    changeLoginData(state, { payload }) {
+      return { ...state, data: payload };
     },
-    changeLoginRegisterPhone(state, {payload}) {
+    changeLoginRegisterPhone(state, { payload }) {
       return {
         ...state,
-        isLogin: payload.phone !== '' ? false : true,
+        isLogin: true,
         user: payload,
-      }
-    }
+      };
+    },
+    changeIsLoginStatus(state, { payload }) {
+      return {
+        ...state,
+        isLogin: payload,
+      };
+    },
   },
 };
 export default Model;

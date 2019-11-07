@@ -3,18 +3,19 @@
  * You can view component api by:
  * https://github.com/ant-design/ant-design-pro-layout
  */
-import ProLayout, {DefaultFooter, SettingDrawer} from '@ant-design/pro-layout';
-import React, {useEffect} from 'react';
+import ProLayout, { DefaultFooter, SettingDrawer } from '@ant-design/pro-layout';
+import React, { useEffect } from 'react';
 import Link from 'umi/link';
-import {Redirect} from 'react-router'
-import {connect} from 'dva';
-import {Icon, Result, Button, message} from 'antd';
-import {formatMessage} from 'umi-plugin-react/locale';
+import { Redirect } from 'react-router';
+import { connect } from 'dva';
+import { Icon, Result, Button, message } from 'antd';
+import { formatMessage } from 'umi-plugin-react/locale';
 import Authorized from '@/utils/Authorized';
 import RightContent from '@/components/GlobalHeader/RightContent';
-import {isAntDesignPro, getAuthorityFromRouter} from '@/utils/utils';
+import { isAntDesignPro, getAuthorityFromRouter } from '@/utils/utils';
 import logo from '../assets/logo.svg';
-import {isLogin} from "@/utils/utils";
+import { isLogin } from '@/utils/utils';
+import { tokenKey } from '@/config/baseConfig';
 
 const noMatch = (
   <Result
@@ -34,34 +35,32 @@ const noMatch = (
 
 const menuDataRender = menuList =>
   menuList.map(item => {
-    const localItem = {...item, children: item.children ? menuDataRender(item.children) : []};
+    const localItem = { ...item, children: item.children ? menuDataRender(item.children) : [] };
     return Authorized.check(item.authority, localItem, null);
   });
 
 const defaultFooterDom = (
-//   links={[
-//       {
-//         key: 'Ant Design Pro',
-//         title: 'Ant Design Pro',
-//         href: 'https://pro.ant.design',
-//         blankTarget: true,
-//       },
-// {
-//   key: 'github',
-//     title: <Icon type="github" />,
-//   href: 'https://github.com/ant-design/ant-design-pro',
-//   blankTarget: true,
-// },
-// {
-//   key: 'Ant Design',
-//     title: 'Ant Design',
-//   href: 'https://ant.design',
-//   blankTarget: true,
-// },
-// ]}
-  <DefaultFooter
-    copyright="2019 xiaojuzhifu"
-  />
+  //   links={[
+  //       {
+  //         key: 'Ant Design Pro',
+  //         title: 'Ant Design Pro',
+  //         href: 'https://pro.ant.design',
+  //         blankTarget: true,
+  //       },
+  // {
+  //   key: 'github',
+  //     title: <Icon type="github" />,
+  //   href: 'https://github.com/ant-design/ant-design-pro',
+  //   blankTarget: true,
+  // },
+  // {
+  //   key: 'Ant Design',
+  //     title: 'Ant Design',
+  //   href: 'https://ant.design',
+  //   blankTarget: true,
+  // },
+  // ]}
+  <DefaultFooter copyright="2019 xiaojuzhifu" />
 );
 
 const footerRender = () => {
@@ -69,11 +68,7 @@ const footerRender = () => {
     return defaultFooterDom;
   }
 
-  return (
-    <>
-      {defaultFooterDom}
-    </>
-  );
+  return <>{defaultFooterDom}</>;
 };
 
 const BasicLayout = props => {
@@ -92,14 +87,26 @@ const BasicLayout = props => {
   useEffect(() => {
     if (dispatch) {
       dispatch({
+        type: 'user/getUserInfo',
+      })
+        .then(res => {
+          if (!res.status || res.status === 403) {
+            localStorage.removeItem('uid');
+            localStorage.removeItem(tokenKey);
+            message.error('无法获取用户信息，请重新登录！');
+            props.history.push('/user/login');
+          }
+          dispatch({ type: 'dict/fetchAddressList' });
+        })
+        .catch(err => {
+          console.log(err, 'er');
+        });
+      dispatch({
         type: 'user/fetchCurrent',
       });
       dispatch({
         type: 'settings/getSetting',
       });
-      dispatch({
-        type: 'user/getUserInfo',
-      })
     }
   }, []);
   /**
@@ -115,12 +122,12 @@ const BasicLayout = props => {
     }
   }; // get children authority
 
-  const authorized = getAuthorityFromRouter(props.route.routes, location.pathname || '/') || {
-    authority: undefined,
-  };
+  // const authorized = getAuthorityFromRouter(props.route.routes, location.pathname || '/') || {
+  //   authority: undefined,
+  // };
   if (!isLogin()) {
-    message.error('未登录或token失效')
-    return <Redirect to="/user/login"/>
+    message.error('未登录或token失效');
+    return <Redirect to="/user/login" />;
   }
   return (
     <>
@@ -176,7 +183,7 @@ const BasicLayout = props => {
   );
 };
 
-export default connect(({global, settings}) => ({
+export default connect(({ global, settings }) => ({
   collapsed: global.collapsed,
   settings,
 }))(BasicLayout);

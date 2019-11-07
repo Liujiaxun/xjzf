@@ -2,10 +2,11 @@
  * request 网络请求工具
  * 更详细的 api 文档: https://github.com/umijs/umi-request
  */
-import {extend} from 'umi-request';
-import {notification} from 'antd';
-import {getToken, isLogin} from "@/utils/utils";
-import {baseUrl} from "@/config/baseConfig";
+import { extend } from 'umi-request';
+import { notification } from 'antd';
+import { getToken, isLogin } from '@/utils/utils';
+import { router } from 'dva';
+import { baseUrl } from '@/config/baseConfig';
 // import qs from 'qs'
 const codeMessage = {
   200: '服务器成功返回请求的数据。',
@@ -29,11 +30,11 @@ const codeMessage = {
  */
 
 const errorHandler = error => {
-  const {response} = error;
+  const { response } = error;
 
   if (response && response.status) {
     const errorText = codeMessage[response.status] || response.statusText;
-    const {status, url} = response;
+    const { status, url } = response;
     notification.error({
       message: `请求错误 ${status}: ${url}`,
       description: errorText,
@@ -66,36 +67,33 @@ const checkUrl = [
   baseUrl + '/user/qrlogin',
   baseUrl + '/user/wechatlogin',
   // baseUrl + '/user/info',
-]
+];
 request.interceptors.request.use((url, options) => {
-  const {method, headers, params, data} = options
+  const { method, headers, params, data } = options;
   if (isLogin() && checkUrl.indexOf(url) < 0) {
-    const token = getToken()
+    const token = getToken();
     options.headers = {
       ...headers,
-      // "Authen-Token": token
-    }
-
+      'Authen-Token': token,
+    };
     if (method === 'post' || method === 'POST') {
       options.data = {
         ...data,
         uid: localStorage.getItem('uid'),
-      }
+      };
     } else {
       options.params = {
         ...params,
         uid: localStorage.getItem('uid'),
-      }
+      };
     }
   }
-  console.log(options, 'options')
-  return (
-    {
-      url,
-      options: {
-        ...options,
-      },
-    }
-  );
+  console.log(options, 'options');
+  return {
+    url,
+    options: {
+      ...options,
+    },
+  };
 });
 export default request;
