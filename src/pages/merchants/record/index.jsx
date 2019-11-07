@@ -36,9 +36,9 @@ const statusMap = ['default', 'processing', 'success', 'error'];
 const status = ['关闭', '运行中', '已上线', '异常'];
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ listAndtableList, loading }) => ({
-  listAndtableList,
-  loading: loading.models.listAndtableList,
+@connect(({ merchantsAndRecord, loading }) => ({
+  merchantsAndRecord,
+  loading: loading.models.merchantsAndRecord,
 }))
 class TableList extends Component {
   state = {
@@ -49,23 +49,26 @@ class TableList extends Component {
     formValues: {},
     stepFormValues: {},
   };
+
+  searchData = {};
+
   columns = [
     {
       title: '申请单号',
-      dataIndex: 'name',
+      dataIndex: 'business_code',
     },
     {
       title: '收款名称',
-      dataIndex: 'desc',
+      dataIndex: 'merchant_shortname',
     },
     {
       title: '申请姓名',
-      dataIndex: 'desc',
+      dataIndex: 'id_card_name',
     },
 
     {
       title: '费率',
-      dataIndex: 'callNo',
+      dataIndex: 'rate',
       sorter: true,
       align: 'right',
       render: val => `${val} %`,
@@ -80,27 +83,20 @@ class TableList extends Component {
     },
     {
       title: '系统审核',
-      dataIndex: 'status',
-      render(val) {
-        return <Badge status={statusMap[val]} text={status[val]} />;
-      },
+      render: (val, r) => <Badge status={statusMap[r.status]} text={status[r.status]} />,
     },
     {
       title: '微信审核',
-      dataIndex: 'status',
-      render(val) {
-        return <Badge status={statusMap[val]} text={status[val]} />;
-      },
+      render: (val, r) => <Badge status={statusMap[r.status]} text={status[r.status]} />,
     },
     {
       title: '进度',
-      dataIndex: 'status',
       sorter: true,
-      render: val => <Badge status={statusMap[val]} text={status[val]} />,
+      render: (val, r) => <Badge status={statusMap[r.status]} text={status[r.status]} />,
     },
     {
       title: '申请时间',
-      dataIndex: 'updatedAt',
+      dataIndex: 'ctime',
       sorter: true,
       render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
     },
@@ -116,76 +112,29 @@ class TableList extends Component {
 
   componentDidMount() {
     const { dispatch } = this.props;
-    dispatch({
-      type: 'listAndtableList/fetch',
-    });
+    dispatch({ type: 'merchantsAndRecord/fetchMerchantsList' });
   }
 
-  handleStandardTableChange = (pagination, filtersArg, sorter) => {
+  handleStandardTableChange = pagination => {
     const { dispatch } = this.props;
-    const { formValues } = this.state;
-    const filters = Object.keys(filtersArg).reduce((obj, key) => {
-      const newObj = { ...obj };
-      newObj[key] = getValue(filtersArg[key]);
-      return newObj;
-    }, {});
     const params = {
-      currentPage: pagination.current,
+      ...this.searchData,
+      page: pagination.current,
       pageSize: pagination.pageSize,
-      ...formValues,
-      ...filters,
     };
-
-    if (sorter.field) {
-      params.sorter = `${sorter.field}_${sorter.order}`;
-    }
-
     dispatch({
-      type: 'listAndtableList/fetch',
+      type: 'merchantsAndRecord/fetchMerchantsList',
       payload: params,
     });
   };
-  handleFormReset = () => {
-    const { form, dispatch } = this.props;
-    form.resetFields();
-    this.setState({
-      formValues: {},
-    });
-    dispatch({
-      type: 'listAndtableList/fetch',
-      payload: {},
-    });
-  };
+
   toggleForm = () => {
     const { expandForm } = this.state;
     this.setState({
       expandForm: !expandForm,
     });
   };
-  handleMenuClick = e => {
-    const { dispatch } = this.props;
-    const { selectedRows } = this.state;
-    if (!selectedRows) return;
 
-    switch (e.key) {
-      case 'remove':
-        dispatch({
-          type: 'listAndtableList/remove',
-          payload: {
-            key: selectedRows.map(row => row.key),
-          },
-          callback: () => {
-            this.setState({
-              selectedRows: [],
-            });
-          },
-        });
-        break;
-
-      default:
-        break;
-    }
-  };
   handleSelectRows = rows => {
     this.setState({
       selectedRows: rows,
@@ -198,51 +147,34 @@ class TableList extends Component {
       if (err) return;
       const values = {
         ...fieldsValue,
-        updatedAt: fieldsValue.updatedAt && fieldsValue.updatedAt.valueOf(),
       };
       this.setState({
         formValues: values,
       });
       dispatch({
-        type: 'listAndtableList/fetch',
-        payload: values,
+        type: 'merchantsAndRecord/fetchMerchantsList',
+        payload: {
+          ...values,
+          page: 1,
+          pageSize: 10,
+        },
+      }).then(res => {
+        this.searchData = JSON.parse(JSON.stringify(values));
       });
     });
   };
+
   handleModalVisible = flag => {
     this.setState({
       modalVisible: !!flag,
     });
   };
+
   handleUpdateModalVisible = (flag, record) => {
     this.setState({
       updateModalVisible: !!flag,
       stepFormValues: record || {},
     });
-  };
-  handleAdd = fields => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'listAndtableList/add',
-      payload: {
-        desc: fields.desc,
-      },
-    });
-    message.success('添加成功');
-    this.handleModalVisible();
-  };
-  handleUpdate = fields => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'listAndtableList/update',
-      payload: {
-        name: fields.name,
-        desc: fields.desc,
-        key: fields.key,
-      },
-    });
-    message.success('配置成功');
-    this.handleUpdateModalVisible();
   };
 
   renderSimpleForm() {
@@ -259,12 +191,12 @@ class TableList extends Component {
         >
           <Col md={8} sm={24}>
             <FormItem label="申请单号">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('business_code')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="申请手机号">
-              {getFieldDecorator('phone')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('contact_phone')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -310,17 +242,17 @@ class TableList extends Component {
         >
           <Col md={8} sm={24}>
             <FormItem label="申请单号">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('business_code')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="申请姓名">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('id_card_name')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="手机号码">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('contact_phone')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
         </Row>
@@ -400,7 +332,7 @@ class TableList extends Component {
         >
           <Col md={8} sm={24}>
             <FormItem label="收款名称">
-              {getFieldDecorator('name1')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('merchant_shortname')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
         </Row>

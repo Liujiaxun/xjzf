@@ -34,10 +34,9 @@ const getValue = obj =>
 const statusMap = ['default', 'processing', 'success', 'error'];
 const status = ['关闭', '运行中', '已上线', '异常'];
 
-/* eslint react/no-multi-comp:0 */
-@connect(({ listAndtableList, loading }) => ({
-  listAndtableList,
-  loading: loading.models.listAndtableList,
+@connect(({ merchantsAndBusiness, loading }) => ({
+  merchantsAndBusiness,
+  loading: loading.models.merchantsAndBusiness,
 }))
 class TableList extends Component {
   state = {
@@ -112,35 +111,28 @@ class TableList extends Component {
 
   componentDidMount() {
     const { dispatch } = this.props;
+    console.log(dispatch, 'dis');
     dispatch({
-      type: 'listAndtableList/fetch',
+      type: 'merchantsAndBusiness/fetchMerchantsList',
+      payload: {
+        enabled: 1,
+      },
     });
   }
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
     const { dispatch } = this.props;
-    const { formValues } = this.state;
-    const filters = Object.keys(filtersArg).reduce((obj, key) => {
-      const newObj = { ...obj };
-      newObj[key] = getValue(filtersArg[key]);
-      return newObj;
-    }, {});
     const params = {
-      currentPage: pagination.current,
+      page: pagination.current,
       pageSize: pagination.pageSize,
-      ...formValues,
-      ...filters,
+      enabled: 1,
     };
-
-    if (sorter.field) {
-      params.sorter = `${sorter.field}_${sorter.order}`;
-    }
-
     dispatch({
-      type: 'listAndtableList/fetch',
+      type: 'merchantsAndBusiness/fetchMerchantsList',
       payload: params,
     });
   };
+
   handleFormReset = () => {
     const { form, dispatch } = this.props;
     form.resetFields();
@@ -152,36 +144,14 @@ class TableList extends Component {
       payload: {},
     });
   };
+
   toggleForm = () => {
     const { expandForm } = this.state;
     this.setState({
       expandForm: !expandForm,
     });
   };
-  handleMenuClick = e => {
-    const { dispatch } = this.props;
-    const { selectedRows } = this.state;
-    if (!selectedRows) return;
 
-    switch (e.key) {
-      case 'remove':
-        dispatch({
-          type: 'listAndtableList/remove',
-          payload: {
-            key: selectedRows.map(row => row.key),
-          },
-          callback: () => {
-            this.setState({
-              selectedRows: [],
-            });
-          },
-        });
-        break;
-
-      default:
-        break;
-    }
-  };
   handleSelectRows = rows => {
     this.setState({
       selectedRows: rows,
@@ -215,30 +185,6 @@ class TableList extends Component {
       updateModalVisible: !!flag,
       stepFormValues: record || {},
     });
-  };
-  handleAdd = fields => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'listAndtableList/add',
-      payload: {
-        desc: fields.desc,
-      },
-    });
-    message.success('添加成功');
-    this.handleModalVisible();
-  };
-  handleUpdate = fields => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'listAndtableList/update',
-      payload: {
-        name: fields.name,
-        desc: fields.desc,
-        key: fields.key,
-      },
-    });
-    message.success('配置成功');
-    this.handleUpdateModalVisible();
   };
 
   renderSimpleForm() {
@@ -319,7 +265,6 @@ class TableList extends Component {
               {getFieldDecorator('name')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
-
         </Row>
         <Row
           gutter={{
@@ -443,18 +388,9 @@ class TableList extends Component {
   }
 
   render() {
-    const {
-      listAndtableList: { data },
-      loading,
-    } = this.props;
+    const { loading } = this.props;
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
 
-    const menu = (
-      <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
-        <Menu.Item key="remove">删除</Menu.Item>
-        <Menu.Item key="approval">批量审批</Menu.Item>
-      </Menu>
-    );
     const parentMethods = {
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
@@ -465,13 +401,13 @@ class TableList extends Component {
     };
     return (
       <PageHeaderWrapper>
-        <Card bordered={false} bodyStyle={{padding: 0}}>
+        <Card bordered={false} bodyStyle={{ padding: 0 }}>
           <div className={styles.tableList}>
             {/*<div className={styles.tableListForm}>{this.renderForm()}</div>*/}
             <StandardTable
               selectedRows={selectedRows}
               loading={loading}
-              data={data}
+              data={[]}
               columns={this.columns}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}

@@ -1,7 +1,7 @@
-import { fetchMerchantsList } from './service';
+import { fetchMerchantsList } from '@/services/business';
 
 const Model = {
-  namespace: 'merchantsAndBusiness',
+  namespace: 'merchantsAndBusiness1',
   state: {
     data: {
       list: [],

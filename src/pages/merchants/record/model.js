@@ -1,4 +1,4 @@
-import { addRule, queryRule, removeRule, updateRule } from './service';
+import { fetchMerchantsList } from './service';
 
 const Model = {
   namespace: 'merchantsAndRecord',
@@ -9,44 +9,22 @@ const Model = {
     },
   },
   effects: {
-    *fetch({ payload }, { call, put }) {
-      const response = yield call(queryRule, payload);
+    *fetchMerchantsList({ payload }, { call, put }) {
+      const response = yield call(fetchMerchantsList, payload);
       yield put({
         type: 'save',
         payload: response,
       });
-    },
-
-    *add({ payload, callback }, { call, put }) {
-      const response = yield call(addRule, payload);
-      yield put({
-        type: 'save',
-        payload: response,
-      });
-      if (callback) callback();
-    },
-
-    *remove({ payload, callback }, { call, put }) {
-      const response = yield call(removeRule, payload);
-      yield put({
-        type: 'save',
-        payload: response,
-      });
-      if (callback) callback();
-    },
-
-    *update({ payload, callback }, { call, put }) {
-      const response = yield call(updateRule, payload);
-      yield put({
-        type: 'save',
-        payload: response,
-      });
-      if (callback) callback();
+      return response;
     },
   },
   reducers: {
     save(state, action) {
-      return { ...state, data: action.payload };
+      return {
+        ...state,
+        list: action.payload.list || [],
+        pagination: action.payload.paginator || {},
+      };
     },
   },
 };
