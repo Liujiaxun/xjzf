@@ -3,7 +3,6 @@ import React, {Fragment} from 'react';
 import {connect} from 'dva';
 import styles from './index.less';
 
-const {Option} = Select;
 const formItemLayout = {
   labelCol: {
     span: 5,
@@ -49,6 +48,16 @@ const Step2 = props => {
       payload: 'info',
     });
   }
+  const onChange = (file) => {
+    console.log(file,111)
+    const formData = new FormData();
+    formData.append('files',file.file);
+    console.log(formData,'11')
+    dispatch({
+      type: 'merchantsAndApply/uploadFile',
+      payload: {files:file.file},
+    });
+  }
   return (
     <Fragment>
       <Form className={styles.stepForm}>
@@ -63,7 +72,7 @@ const Step2 = props => {
             valuePropName: 'fileList',
             getValueFromEvent: normFile,
           })(
-            <Upload.Dragger name="files" action="/upload.do">
+            <Upload.Dragger name="files" customRequest={onChange}>
               <p className="ant-upload-drag-icon">
                 <Icon type="inbox"/>
               </p>
@@ -83,7 +92,7 @@ const Step2 = props => {
             valuePropName: 'fileList1',
             getValueFromEvent: normFile,
           })(
-            <Upload.Dragger name="files" action="/upload.do">
+            <Upload.Dragger name="files" onChang={onChange}>
               <p className="ant-upload-drag-icon">
                 <Icon type="inbox"/>
               </p>

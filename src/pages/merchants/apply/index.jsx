@@ -19,7 +19,7 @@ class StepForm extends Component {
     const {current} = this.props;
     switch (current) {
       case 'info':
-        return 0;
+        return 1;
       case 'upload':
         return 1;
       case 'pay':
