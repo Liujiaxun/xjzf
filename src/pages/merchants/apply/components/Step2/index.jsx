@@ -34,7 +34,6 @@ const Step2 = props => {
   };
   const onValidateForm = () => {
     validateFields((err, values) => {
-      console.log(values, 1111);
       if (!err && dispatch) {
         dispatch({
           type: 'merchantsAndApply/saveStepFormData',
