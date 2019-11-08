@@ -58,18 +58,21 @@ const request = extend({
   // 默认错误处理
   headers: {
     // 'X-Requested-With': 'XMLHttpRequest',
-    Accept: 'application/json',
-    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    Accept: '*/*',
+    'Content-Type': 'application/x-www-form-urlencoded',
   },
   // credentials: 'include', // 默认请求是否带上cookie
 });
 const checkUrl = [
   baseUrl + '/user/qrlogin',
   baseUrl + '/user/wechatlogin',
-  // baseUrl + '/user/info',
+  baseUrl + '/file/upload_img',
 ];
 request.interceptors.request.use((url, options) => {
   const { method, headers, params, data } = options;
+  if (url === checkUrl[2]) {
+    options.headers = {};
+  }
   if (isLogin() && checkUrl.indexOf(url) < 0) {
     const token = getToken();
     options.headers = {
