@@ -2,6 +2,7 @@ import {Button, DatePicker, Divider, Form, Input, Select, Row, Col, Checkbox} fr
 import React, {Fragment, useState} from 'react';
 import {connect} from 'dva';
 import styles from './index.less';
+import moment from 'moment';
 
 const {Option} = Select;
 const {RangePicker} = DatePicker;
@@ -50,17 +51,20 @@ class Step1 extends React.Component {
       store_address_code1,
       store_address_code2,
       store_address_code3,
+      rate
     } = data;
     const {c1, c2, q1, q2} = this.state;
     const {getFieldDecorator, validateFields} = form;
     const rangeConfig = {};
     const onValidateForm = () => {
       validateFields((err, values) => {
-        console.log(err, values);
         if (!err && dispatch) {
           dispatch({
             type: 'merchantsAndApply/saveStepFormData',
-            payload: values,
+            payload: {
+              ...values,
+              id_card_valid_time: values.id_card_valid_time.map(item => item.format('YYYY-MM-DD h:mm:ss'))
+            },
           });
           dispatch({
             type: 'merchantsAndApply/saveCurrentStep',
@@ -139,6 +143,17 @@ class Step1 extends React.Component {
                   },
                 ],
               })(<Input placeholder="请输入手机号码"/>)}
+            </Form.Item>
+            <Form.Item {...formItemLayout} label="费率">
+              {getFieldDecorator('rate', {
+                initialValue: rate,
+                rules: [
+                  {
+                    required: true,
+                    message: '请输入手机号码',
+                  },
+                ],
+              })(<Input placeholder="请输入手机号码" disabled={true}/>)}
             </Form.Item>
             <Form.Item {...formItemLayout} label="详细地址">
               <Row gutter={24}>
@@ -236,7 +251,7 @@ class Step1 extends React.Component {
             </Form.Item>
             <Form.Item {...formItemLayout} label="证件有效期">
               {getFieldDecorator('id_card_valid_time', {
-                initialValue:id_card_valid_time,
+                initialValue: id_card_valid_time.map(item => new moment(item)),
                 rules: [{type: 'array', required: true, message: '请选择时间'}],
               })(<RangePicker/>)}
               <Checkbox style={{marginLeft: '20px'}}>

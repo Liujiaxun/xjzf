@@ -1,4 +1,4 @@
-import { Button, Divider, Form, Input, Select, Upload, Icon } from 'antd';
+import {Button, Divider, Form, Input, Select, Upload, Icon, message} from 'antd';
 import React, { Fragment, useState } from 'react';
 import { connect } from 'dva';
 
@@ -42,10 +42,11 @@ const Step2 = props => {
             id_card_national: bimg,
           },
         });
+
         dispatch({
-          type: 'merchantsAndApply/saveCurrentStep',
-          payload: 'pay',
-        });
+          type: 'merchantsAndApply/saveMerchantSubmit',
+          payload: data
+        })
       }
     });
   };
@@ -64,9 +65,12 @@ const Step2 = props => {
     }).then(r => {
       if (r === 'empty') {
         file.onError();
+        message.error('上传失败')
+
       } else {
         const url = r.files.url;
         file.onSuccess();
+        message.success('上传成功')
         if (key === 'id_card_copy') {
           setImg(url);
         } else {
@@ -105,7 +109,7 @@ const Step2 = props => {
               },
             ],
           })(
-            <Upload.Dragger name="files" onChang={file => onChange(file, 'id_card_national')}>
+            <Upload.Dragger name="files" customRequest={file => onChange(file, 'id_card_national')}>
               <p className="ant-upload-drag-icon">
                 <Icon type="inbox" />
               </p>

@@ -13,31 +13,34 @@ import {
   Menu,
   Row,
   Select,
-  message,
+  message, Table,
 } from 'antd';
-import React, { Component, Fragment } from 'react';
-import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { connect } from 'dva';
+import React, {Component, Fragment} from 'react';
+import {PageHeaderWrapper} from '@ant-design/pro-layout';
+import {connect} from 'dva';
 import moment from 'moment';
 import CreateForm from './components/CreateForm';
-import StandardTable from './components/StandardTable';
 import UpdateForm from './components/UpdateForm';
 import styles from './style.less';
 
 const FormItem = Form.Item;
-const { Option } = Select;
+const {Option} = Select;
 
-const getValue = obj =>
-  Object.keys(obj)
-    .map(key => obj[key])
-    .join(',');
 
 const statusMap = ['default', 'processing', 'success', 'error'];
 const status = ['关闭', '运行中', '已上线', '异常'];
+const label = {
+  '0': '待完善资料',
+  '1': '待审核',
+  '2': '审核成功待签约',
+  '3': '已签约',
+  '-2': '审核驳回',
+  '-3': '冻结',
+}
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ merchantsAndRecord, loading }) => ({
-  merchantsAndRecord,
+@connect(({merchantsAndRecord, loading}) => ({
+  data: merchantsAndRecord.data,
   loading: loading.models.merchantsAndRecord,
 }))
 class TableList extends Component {
@@ -78,27 +81,27 @@ class TableList extends Component {
       title: '支付状态',
       dataIndex: 'status',
       render(val) {
-        return <Badge status={statusMap[val]} text={status[val]} />;
+        return  <span>未支付</span>
       },
     },
     {
       title: '系统审核',
-      render: (val, r) => <Badge status={statusMap[r.status]} text={status[r.status]} />,
+      render: (val, r) => <span>未通过</span>,
     },
     {
       title: '微信审核',
-      render: (val, r) => <Badge status={statusMap[r.status]} text={status[r.status]} />,
+      render: (val, r) => <span>未通过</span>,
     },
     {
       title: '进度',
       sorter: true,
-      render: (val, r) => <Badge status={statusMap[r.status]} text={status[r.status]} />,
+      render: (val, r) => <Badge status={statusMap[r.status+'']} text={label[r.status+'']}/>,
     },
     {
       title: '申请时间',
       dataIndex: 'ctime',
       sorter: true,
-      render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
+      render: val => <span>{moment(val * 1000).format('YYYY-MM-DD HH:mm:ss')}</span>,
     },
     {
       title: '操作',
@@ -111,12 +114,13 @@ class TableList extends Component {
   ];
 
   componentDidMount() {
-    const { dispatch } = this.props;
-    dispatch({ type: 'merchantsAndRecord/fetchMerchantsList' });
+    const {dispatch} = this.props;
+    dispatch({type: 'merchantsAndRecord/fetchMerchantsList'});
+
   }
 
   handleStandardTableChange = pagination => {
-    const { dispatch } = this.props;
+    const {dispatch} = this.props;
     const params = {
       ...this.searchData,
       page: pagination.current,
@@ -129,7 +133,7 @@ class TableList extends Component {
   };
 
   toggleForm = () => {
-    const { expandForm } = this.state;
+    const {expandForm} = this.state;
     this.setState({
       expandForm: !expandForm,
     });
@@ -142,7 +146,7 @@ class TableList extends Component {
   };
   handleSearch = e => {
     e.preventDefault();
-    const { dispatch, form } = this.props;
+    const {dispatch, form} = this.props;
     form.validateFields((err, fieldsValue) => {
       if (err) return;
       const values = {
@@ -178,8 +182,8 @@ class TableList extends Component {
   };
 
   renderSimpleForm() {
-    const { form } = this.props;
-    const { getFieldDecorator } = form;
+    const {form} = this.props;
+    const {getFieldDecorator} = form;
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row
@@ -191,12 +195,12 @@ class TableList extends Component {
         >
           <Col md={8} sm={24}>
             <FormItem label="申请单号">
-              {getFieldDecorator('business_code')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('business_code')(<Input placeholder="请输入"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="申请手机号">
-              {getFieldDecorator('contact_phone')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('contact_phone')(<Input placeholder="请输入"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -218,7 +222,7 @@ class TableList extends Component {
                 }}
                 onClick={this.toggleForm}
               >
-                展开 <Icon type="down" />
+                展开 <Icon type="down"/>
               </a>
             </span>
           </Col>
@@ -229,7 +233,7 @@ class TableList extends Component {
 
   renderAdvancedForm() {
     const {
-      form: { getFieldDecorator },
+      form: {getFieldDecorator},
     } = this.props;
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
@@ -242,17 +246,17 @@ class TableList extends Component {
         >
           <Col md={8} sm={24}>
             <FormItem label="申请单号">
-              {getFieldDecorator('business_code')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('business_code')(<Input placeholder="请输入"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="申请姓名">
-              {getFieldDecorator('id_card_name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('id_card_name')(<Input placeholder="请输入"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="手机号码">
-              {getFieldDecorator('contact_phone')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('contact_phone')(<Input placeholder="请输入"/>)}
             </FormItem>
           </Col>
         </Row>
@@ -332,7 +336,7 @@ class TableList extends Component {
         >
           <Col md={8} sm={24}>
             <FormItem label="收款名称">
-              {getFieldDecorator('merchant_shortname')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('merchant_shortname')(<Input placeholder="请输入"/>)}
             </FormItem>
           </Col>
         </Row>
@@ -364,7 +368,7 @@ class TableList extends Component {
               }}
               onClick={this.toggleForm}
             >
-              收起 <Icon type="up" />
+              收起 <Icon type="up"/>
             </a>
           </div>
         </div>
@@ -373,14 +377,14 @@ class TableList extends Component {
   }
 
   renderForm() {
-    const { expandForm } = this.state;
+    const {expandForm} = this.state;
     return expandForm ? this.renderAdvancedForm() : this.renderSimpleForm();
   }
 
   render() {
-    const { loading } = this.props;
-    const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
-
+    const {loading, data} = this.props;
+    const {list, pagination} = data;
+    const {selectedRows, modalVisible, updateModalVisible, stepFormValues} = this.state;
     const parentMethods = {
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
@@ -394,17 +398,16 @@ class TableList extends Component {
         <Card bordered={false}>
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
-            <StandardTable
-              selectedRows={selectedRows}
-              loading={loading}
-              data={[]}
+            <Table
+              rowKey={'id'}
+              dataSource={list}
               columns={this.columns}
-              onSelectRow={this.handleSelectRows}
-              onChange={this.handleStandardTableChange}
+              pagination={pagination}
+              onChange={this.handleTableChange}
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} />
+        <CreateForm {...parentMethods} modalVisible={modalVisible}/>
         {stepFormValues && Object.keys(stepFormValues).length ? (
           <UpdateForm
             {...updateMethods}

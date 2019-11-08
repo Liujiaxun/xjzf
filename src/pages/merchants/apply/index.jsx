@@ -15,11 +15,18 @@ const {Step} = Steps;
   current: merchantsAndApply.current,
 }))
 class StepForm extends Component {
+  constructor(props){
+    super(props);
+    props.dispatch({
+      type:'merchantsAndApply/clearData'
+    })
+  }
+
   getCurrentStep() {
     const {current} = this.props;
     switch (current) {
       case 'info':
-        return 1;
+        return 0;
       case 'upload':
         return 1;
       case 'pay':
@@ -56,7 +63,7 @@ class StepForm extends Component {
               <Step title="填写信息"/>
               <Step title="上传材料"/>
               <Step title="支付款项"/>
-              <Step title="自动审核(15分钟内)"/>
+              {/*<Step title="自动审核(15分钟内)"/>*/}
               <Step title="开通完成"/>
             </Steps>
             {stepComponent}

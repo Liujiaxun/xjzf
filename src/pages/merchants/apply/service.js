@@ -14,3 +14,11 @@ export async function uploadFile(params) {
     data: params,
   });
 }
+
+export async function saveMerchantSubmit(data) {
+  return request(baseUrl + '/merchant/submit', {
+    method: 'POST',
+    data,
+  });
+}
+

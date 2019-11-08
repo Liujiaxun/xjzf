@@ -1,7 +1,8 @@
-import { Button, Form, Input, Modal } from 'antd';
-import React, { Component } from 'react';
+import {Button, Form, Input, Modal} from 'antd';
+import React, {Component} from 'react';
 
 const FormItem = Form.Item;
+
 class UpdateForm extends Component {
   static defaultProps = {
     handleUpdate: () => {
@@ -22,17 +23,11 @@ class UpdateForm extends Component {
 
   constructor(props) {
     super(props);
+    console.log(props)
     this.state = {
       isUpdate: false,
       formVals: {
-        name: props.values.name,
-        desc: props.values.desc,
-        key: props.values.key,
-        target: '0',
-        template: '0',
-        type: '1',
-        time: '',
-        frequency: 'month',
+        ...props.values
       },
       currentStep: 3,
     };
@@ -69,69 +64,69 @@ class UpdateForm extends Component {
     return (
       <div>
         <h4>微信支付商户信息</h4>
-        <FormItem key="name" {...this.formLayout} label="收款名称" style={{marginBottom: '10px'}}>
+        <FormItem   {...this.formLayout} label="收款名称" style={{marginBottom: '10px'}}>
           {form.getFieldDecorator('name', {
-            initialValue: formVals.name,
+            initialValue: formVals.merchant_shortname,
           })(<Input disabled placeholder="请输入"/>)}
         </FormItem>
-        <FormItem key="name" {...this.formLayout} label="支付商户号" style={{marginBottom: '10px'}}>
-          {form.getFieldDecorator('name', {
-            initialValue: formVals.name,
+        <FormItem   {...this.formLayout} label="支付商户号" style={{marginBottom: '10px'}}>
+          {form.getFieldDecorator('mchid', {
+            initialValue: formVals.mchid,
           })(<Input disabled placeholder="请输入"/>)}
         </FormItem>
-        <FormItem key="name" {...this.formLayout} label="行业" style={{marginBottom: '10px'}}>
-          {form.getFieldDecorator('name', {
-            initialValue: formVals.name,
+        <FormItem   {...this.formLayout} label="行业" style={{marginBottom: '10px'}}>
+          {form.getFieldDecorator('product_desc', {
+            initialValue: formVals.product_desc,
           })(<Input disabled placeholder="请输入"/>)}
         </FormItem>
-        <FormItem key="name" {...this.formLayout} label="费率" style={{marginBottom: '10px'}}>
-          {form.getFieldDecorator('name', {
-            initialValue: formVals.name,
+        <FormItem   {...this.formLayout} label="费率" style={{marginBottom: '10px'}}>
+          {form.getFieldDecorator('rate', {
+            initialValue: formVals.rate,
           })(<Input disabled placeholder="请输入"/>)}
         </FormItem>
         <h4>用户信息</h4>
-        <FormItem key="name" {...this.formLayout} label="姓名" style={{marginBottom: '10px'}}>
-          {form.getFieldDecorator('name', {
-            initialValue: formVals.name,
+        <FormItem   {...this.formLayout} label="姓名" style={{marginBottom: '10px'}}>
+          {form.getFieldDecorator('id_card_name', {
+            initialValue: formVals.id_card_name,
           })(<Input disabled placeholder="请输入"/>)}
         </FormItem>
-        <FormItem key="name" {...this.formLayout} label="联系电话" style={{marginBottom: '10px'}}>
-          {form.getFieldDecorator('name', {
-            initialValue: formVals.name,
+        <FormItem   {...this.formLayout} label="联系电话" style={{marginBottom: '10px'}}>
+          {form.getFieldDecorator('contact_phone', {
+            initialValue: formVals.contact_phone,
           })(<Input disabled placeholder="请输入"/>)}
         </FormItem>
         <h4>用户信息 <a onClick={this.setIsUpdate} style={{fontSize: '12px'}}>修改</a></h4>
-        <FormItem key="name" {...this.formLayout} label="银行" style={{marginBottom: '10px'}}>
-          {form.getFieldDecorator('name', {
+        <FormItem   {...this.formLayout} label="银行" style={{marginBottom: '10px'}}>
+          {form.getFieldDecorator('bank_name', {
             rules: [
               {
                 required: true,
                 message: '请填写银行'
               }
             ],
-            initialValue: formVals.name,
+            initialValue: formVals.bank_name,
           })(<Input disabled={!isUpdate} placeholder="请输入"/>)}
         </FormItem>
-        <FormItem key="name" {...this.formLayout} label="银行卡号" style={{marginBottom: '10px'}}>
-          {form.getFieldDecorator('name', {
+        <FormItem   {...this.formLayout} label="银行卡号" style={{marginBottom: '10px'}}>
+          {form.getFieldDecorator('account_number', {
             rules: [
               {
                 required: true,
                 message: '请填写银行卡号'
               }
             ],
-            initialValue: formVals.name,
+            initialValue: formVals.account_number,
           })(<Input disabled={!isUpdate} placeholder="请输入"/>)}
         </FormItem>
-        <FormItem key="name" {...this.formLayout} label="开户行" style={{marginBottom: '10px'}}>
-          {form.getFieldDecorator('name', {
+        <FormItem   {...this.formLayout} label="开户行" style={{marginBottom: '10px'}}>
+          {form.getFieldDecorator('account_bank', {
             rules: [
               {
                 required: true,
                 message: '请填写开户行'
               }
             ],
-            initialValue: formVals.name,
+            initialValue: formVals.account_bank,
           })(<Input disabled={!isUpdate} placeholder="请输入"/>)}
         </FormItem>
       </div>
@@ -152,7 +147,7 @@ class UpdateForm extends Component {
         }
       </div>
     )
-    ;
+      ;
   };
 
   render() {

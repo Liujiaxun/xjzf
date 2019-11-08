@@ -1,4 +1,4 @@
-import { fetchMerchantsList } from './service';
+import {fetchMerchantsList} from './service';
 
 const Model = {
   namespace: 'merchantsAndRecord',
@@ -9,11 +9,11 @@ const Model = {
     },
   },
   effects: {
-    *fetchMerchantsList({ payload }, { call, put }) {
+    * fetchMerchantsList({payload}, {call, put}) {
       const response = yield call(fetchMerchantsList, payload);
       yield put({
         type: 'save',
-        payload: response,
+        payload: response.data,
       });
       return response;
     },
@@ -22,8 +22,10 @@ const Model = {
     save(state, action) {
       return {
         ...state,
-        list: action.payload.list || [],
-        pagination: action.payload.paginator || {},
+        data: {
+          list: action.payload.list,
+          pagination:action.payload.paginator
+        }
       };
     },
   },

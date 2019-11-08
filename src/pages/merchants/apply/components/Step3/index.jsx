@@ -1,6 +1,7 @@
 import { Alert, Button, Descriptions, Divider, Statistic, Form, Input } from 'antd';
 import React from 'react';
 import { connect } from 'dva';
+import qCode from '../../../../../assets/2code.png'
 import styles from './index.less';
 const formItemLayout = {
   labelCol: {
@@ -10,7 +11,6 @@ const formItemLayout = {
     span: 19,
   },
 };
-
 const Step3 = props => {
   const { form, data, dispatch, submitting } = props;
 
@@ -36,7 +36,7 @@ const Step3 = props => {
         if (dispatch) {
           dispatch({
             type: 'merchantsAndApply/saveCurrentStep',
-            payload: 'reload',
+            payload: 'result',
           });
         }
       }
@@ -49,17 +49,19 @@ const Step3 = props => {
       <Alert
         closable
         showIcon
-        message="确认转账后，资金将直接打入对方账户，无法退回。"
+        message="确认支付后，资金将直接打入对方账户。"
         style={{
           marginBottom: 24,
         }}
       />
       <Descriptions column={1}>
-        <Descriptions.Item label="付款账户"> {payAccount}</Descriptions.Item>
-        <Descriptions.Item label="收款账户"> {receiverAccount}</Descriptions.Item>
-        <Descriptions.Item label="收款人姓名"> {receiverName}</Descriptions.Item>
-        <Descriptions.Item label="转账金额">
-          <Statistic value={amount} suffix="元" />
+        <Descriptions.Item label="付款金额">
+          <Statistic value={500} suffix="元" />
+        </Descriptions.Item>
+        <Descriptions.Item  >
+          <div style={{width:'250px',height:'250px'}}>
+            <img src={qCode} alt=""/>
+          </div>
         </Descriptions.Item>
       </Descriptions>
       <Divider
@@ -67,25 +69,6 @@ const Step3 = props => {
           margin: '24px 0',
         }}
       />
-      <Form.Item {...formItemLayout} label="支付密码" required={false}>
-        {getFieldDecorator('password', {
-          initialValue: '123456',
-          rules: [
-            {
-              required: true,
-              message: '需要支付密码才能进行支付',
-            },
-          ],
-        })(
-          <Input
-            type="password"
-            autoComplete="off"
-            style={{
-              width: '80%',
-            }}
-          />,
-        )}
-      </Form.Item>
       <Form.Item
         style={{
           marginBottom: 8,
