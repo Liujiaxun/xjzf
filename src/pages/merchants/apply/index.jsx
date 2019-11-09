@@ -20,6 +20,22 @@ class StepForm extends Component {
     props.dispatch({
       type:'merchantsAndApply/clearData'
     })
+    const { id, setup } = props.location.query;
+    props.dispatch({
+      type: 'merchantsAndApply/saveInfo',
+      payload: {},
+    })
+    if(id && setup){
+      props.dispatch({
+        type: 'merchantsAndApply/saveCurrentStep',
+        payload: setup,
+      })
+    }else{
+      props.dispatch({
+        type: 'merchantsAndApply/saveCurrentStep',
+        payload: 'info',
+      })
+    }
   }
 
   getCurrentStep() {
@@ -27,14 +43,12 @@ class StepForm extends Component {
     switch (current) {
       case 'info':
         return 0;
-      case 'upload':
-        return 1;
       case 'pay':
+        return 1;
+      case 'qy':
         return 2;
-      case 'reload':
-        return 3;
       case 'result':
-        return 4;
+        return 3;
       default:
         return 0;
     }
@@ -46,13 +60,13 @@ class StepForm extends Component {
     if (currentStep === 0) {
       stepComponent = <Step1/>;
     } else if (currentStep === 1) {
-      stepComponent = <Step2/>;
-    } else if (currentStep === 2) {
       stepComponent = <Step3/>;
+    } else if (currentStep === 2) {
+      stepComponent = <Step2 id={ this.props.location.query.id }/>;
     } else if (currentStep === 3) {
-      stepComponent = <Step4/>;
-    } else {
       stepComponent = <Step5/>;
+    } else {
+      stepComponent = <Step1/>;
     }
 
     return (
@@ -61,9 +75,8 @@ class StepForm extends Component {
           <>
             <Steps current={currentStep} className={styles.steps}>
               <Step title="填写信息"/>
-              <Step title="上传材料"/>
               <Step title="支付款项"/>
-              {/*<Step title="自动审核(15分钟内)"/>*/}
+              <Step title="商家签约"/>
               <Step title="开通完成"/>
             </Steps>
             {stepComponent}

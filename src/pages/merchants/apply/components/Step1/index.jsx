@@ -1,8 +1,24 @@
-import {Button, DatePicker, Divider, Form, Input, Select, Row, Col, Checkbox} from 'antd';
+import {
+  Button,
+  DatePicker,
+  Divider,
+  Cascader,
+  Form,
+  Input,
+  Select,
+  Row,
+  Col,
+  Checkbox,
+  Upload,
+  Icon,
+  message
+} from 'antd';
 import React, {Fragment, useState} from 'react';
 import {connect} from 'dva';
 import styles from './index.less';
 import moment from 'moment';
+import request from "@/utils/request";
+import {baseUrl} from "@/config/baseConfig";
 
 const {Option} = Select;
 const {RangePicker} = DatePicker;
@@ -20,27 +36,23 @@ class Step1 extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      c1: [],
-      c2: [],
-      q1: [],
-      q2: []
+      id_card_copy: props.data.id_card_copy,
+      id_card_national: props.data.id_card_national,
     }
   }
 
   render() {
+    const self = this;
     const {form, dispatch, data, dict} = this.props;
     const {addressList} = dict
-
     if (!data) {
       return null;
     }
-    const {
+    let {
       account_bank,
       account_number,
       address,
-      bank_address_code1,
-      bank_address_code2,
-      bank_address_code3,
+      bank_address_code,
       bank_name,
       contact_phone,
       id_card_name,
@@ -48,50 +60,69 @@ class Step1 extends React.Component {
       id_card_valid_time,
       merchant_shortname,
       product_desc,
-      store_address_code1,
-      store_address_code2,
-      store_address_code3,
+      store_address_code,
+      id_card_copy,
+      id_card_national,
       rate
     } = data;
-    const {c1, c2, q1, q2} = this.state;
     const {getFieldDecorator, validateFields} = form;
-    const rangeConfig = {};
     const onValidateForm = () => {
+      const self = this;
+      if(self.state.id_card_copy === '' || self.state.id_card_national === ''){
+        message.error('请上传身份证照片')
+        return
+      }
       validateFields((err, values) => {
         if (!err && dispatch) {
           dispatch({
-            type: 'merchantsAndApply/saveStepFormData',
+            type: 'merchantsAndApply/saveMerchantSubmit',
             payload: {
               ...values,
-              id_card_valid_time: values.id_card_valid_time.map(item => item.format('YYYY-MM-DD h:mm:ss'))
-            },
-          });
-          dispatch({
-            type: 'merchantsAndApply/saveCurrentStep',
-            payload: 'upload',
-          });
+              id_card_valid_time: values.id_card_valid_time.map(item => item.format('YYYY-MM-DD h:mm:ss')),
+              id_card_copy: self.state.id_card_copy,
+              id_card_national: self.state.id_card_national
+            }
+          }).then(r => {
+            dispatch({
+              type: 'merchantsAndApply/saveStepFormData',
+              payload: {
+                ...values,
+                id_card_valid_time: values.id_card_valid_time.map(item => item.format('YYYY-MM-DD h:mm:ss')),
+                id_card_copy: self.state.id_card_copy,
+                id_card_national: self.state.id_card_national
+              },
+            })
+          })
         }
       });
     };
-    const onCity1Change = (v, c, i) => {
-      this.setState({
-        ['c' + i]: this.props.dict.addressList[c.key].children || [],
-        ['q' + i]: []
-      })
-      if (i === 1) {
-        this.props.form.setFieldsValue({store_address_code2: '', store_address_code3: ''})
-      }
-      if (i === 2) {
-        this.props.form.setFieldsValue({bank_address_code2: '', bank_address_code3: ''})
-      }
-    }
 
-    const onCChange = (v, c, i, d) => {
-      const data = this.state[d];
+    const onChange = (file, key) => {
+      const formData = new FormData();
+      formData.append('files', file.file);
+      request(baseUrl + '/file/upload_img', {
+        method: 'POST',
+        data: formData,
+      }).then(r => {
+        if (r === 'empty') {
+          file.onError();
+          message.error('上传失败')
+        } else {
+          const url = r.files.url;
+          file.onSuccess();
+          message.success('上传成功')
+          this.setState({
+            [key]: url
+          })
+        }
+      });
+    };
+    const handleDelete = key => {
       this.setState({
-        ['q' + i]: data[c.key].children || []
+        [key]: ''
       })
     }
+    let {id_card_copy: idCardCopy, id_card_national: idCardNational} = this.state
     return (
       <Fragment>
         <Form layout="horizontal" className={styles.stepForm} hideRequiredMark>
@@ -157,53 +188,58 @@ class Step1 extends React.Component {
             </Form.Item>
             <Form.Item {...formItemLayout} label="详细地址">
               <Row gutter={24}>
-                <Col sm={6}>
-                  {getFieldDecorator('store_address_code1', {
-                    initialValue: store_address_code1,
+                <Col sm={24}>
+                  {getFieldDecorator('store_address_code', {
+                    initialValue: store_address_code,
                     rules: [
                       {
                         required: true,
-                        message: '请选择省',
+                        message: '请选择省市',
                       },
                     ],
-                  })(<Select onChange={(v, c) => onCity1Change(v, c, 1)}>
-                    {
-                      addressList && addressList.map((item, i) => (
-                        <Option key={i} value={item.value}>{item.label}</Option>))
-                    }
-                  </Select>)}
+                  })(
+                    <Cascader
+                      options={addressList}
+                    />
+                    //   <Select onChange={(v, c) => onCity1Change(v, c, 1)}>
+                    //   {
+                    //     addressList && addressList.map((item, i) => (
+                    //       <Option key={i} value={item.value}>{item.label}</Option>))
+                    //   }
+                    // </Select>
+                  )}
                 </Col>
-                <Col sm={6}>
-                  {getFieldDecorator('store_address_code2', {
-                    initialValue: store_address_code2,
-                    rules: [
-                      {
-                        required: true,
-                        message: '请选择市',
-                      },
-                    ],
-                  })(<Select onChange={(v, c) => onCChange(v, c, 1, 'c1')}>
-                    {
-                      c1 && c1.map((item, i) => (<Option key={i} value={item.value}>{item.label}</Option>))
-                    }
-                  </Select>)}
-                </Col>
-                <Col sm={6}>
-                  {getFieldDecorator('store_address_code3', {
-                    initialValue: store_address_code3,
-                    rules: [
-                      {
-                        required: true,
-                        message: '请选择县/区',
-                      },
-                    ],
-                  })(<Select
-                  >
-                    {
-                      q1 && q1.map((item, i) => (<Option key={i} value={item.value}>{item.label}</Option>))
-                    }
-                  </Select>)}
-                </Col>
+                {/*<Col sm={6}>*/}
+                {/*  {getFieldDecorator('store_address_code2', {*/}
+                {/*    initialValue: store_address_code2,*/}
+                {/*    rules: [*/}
+                {/*      {*/}
+                {/*        required: true,*/}
+                {/*        message: '请选择市',*/}
+                {/*      },*/}
+                {/*    ],*/}
+                {/*  })(<Select onChange={(v, c) => onCChange(v, c, 1, 'c1')}>*/}
+                {/*    {*/}
+                {/*      c1 && c1.map((item, i) => (<Option key={i} value={item.value}>{item.label}</Option>))*/}
+                {/*    }*/}
+                {/*  </Select>)}*/}
+                {/*</Col>*/}
+                {/*<Col sm={6}>*/}
+                {/*  {getFieldDecorator('store_address_code3', {*/}
+                {/*    initialValue: store_address_code3,*/}
+                {/*    rules: [*/}
+                {/*      {*/}
+                {/*        required: true,*/}
+                {/*        message: '请选择县/区',*/}
+                {/*      },*/}
+                {/*    ],*/}
+                {/*  })(<Select*/}
+                {/*  >*/}
+                {/*    {*/}
+                {/*      q1 && q1.map((item, i) => (<Option key={i} value={item.value}>{item.label}</Option>))*/}
+                {/*    }*/}
+                {/*  </Select>)}*/}
+                {/*</Col>*/}
               </Row>
             </Form.Item>
             <Form.Item {...formItemLayout} label=" " colon={false}>
@@ -305,54 +341,96 @@ class Step1 extends React.Component {
             </Form.Item>
             <Form.Item {...formItemLayout} label="银行所在城市">
               <Row gutter={24}>
-                <Col sm={6}>
-                  {getFieldDecorator('bank_address_code1', {
-                    initialValue: bank_address_code1,
+                <Col sm={24}>
+                  {getFieldDecorator('bank_address_code', {
+                    initialValue: bank_address_code,
                     rules: [
                       {
                         required: true,
-                        message: '请选择省',
+                        message: '请选择省市',
                       },
                     ],
-                  })(<Select onChange={(v, c) => onCity1Change(v, c, 2)}>
-                    {
-                      addressList && addressList.map((item, i) => (
-                        <Option key={i} value={item.value}>{item.label}</Option>))
-                    }
-                  </Select>)}
+                  })(
+                    <Cascader
+                      options={addressList}
+                    />
+                  )}
                 </Col>
-                <Col sm={6}>
-                  {getFieldDecorator('bank_address_code2', {
-                    initialValue: bank_address_code2,
-                    rules: [
-                      {
-                        required: true,
-                        message: '请选择市',
-                      },
-                    ],
-                  })(<Select onChange={(v, c) => onCChange(v, c, 2, 'c2')}>
-                    {
-                      c2 && c2.map((item, i) => (<Option key={i} value={item.value}>{item.label}</Option>))
-                    }
-                  </Select>)}
-                </Col>
-                <Col sm={6}>
-                  {getFieldDecorator('bank_address_code3', {
-                    initialValue: bank_address_code3,
-                    rules: [
-                      {
-                        required: true,
-                        message: '请选择县/区',
-                      },
-                    ],
-                  })(<Select
-                  >
-                    {
-                      q2 && q2.map((item, i) => (<Option key={i} value={item.value}>{item.label}</Option>))
-                    }
-                  </Select>)}
-                </Col>
+                {/*<Col sm={6}>*/}
+                {/*  {getFieldDecorator('bank_address_code2', {*/}
+                {/*    initialValue: bank_address_code2,*/}
+                {/*    rules: [*/}
+                {/*      {*/}
+                {/*        required: true,*/}
+                {/*        message: '请选择市',*/}
+                {/*      },*/}
+                {/*    ],*/}
+                {/*  })(<Select onChange={(v, c) => onCChange(v, c, 2, 'c2')}>*/}
+                {/*    {*/}
+                {/*      c2 && c2.map((item, i) => (<Option key={i} value={item.value}>{item.label}</Option>))*/}
+                {/*    }*/}
+                {/*  </Select>)}*/}
+                {/*</Col>*/}
+                {/*<Col sm={6}>*/}
+                {/*  {getFieldDecorator('bank_address_code3', {*/}
+                {/*    initialValue: bank_address_code3,*/}
+                {/*    rules: [*/}
+                {/*      {*/}
+                {/*        required: true,*/}
+                {/*        message: '请选择县/区',*/}
+                {/*      },*/}
+                {/*    ],*/}
+                {/*  })(<Select*/}
+                {/*  >*/}
+                {/*    {*/}
+                {/*      q2 && q2.map((item, i) => (<Option key={i} value={item.value}>{item.label}</Option>))*/}
+                {/*    }*/}
+                {/*  </Select>)}*/}
+                {/*</Col>*/}
               </Row>
+            </Form.Item>
+          </div>
+
+          <Divider orientation="left"> 材料上传 </Divider>
+          <div style={{maxWidth: '800px', margin: '0 auto'}}>
+            <Form.Item {...formItemLayout} label="身份证正面">
+              {getFieldDecorator('id_card_copy', {
+              })(
+                idCardCopy ? (
+                  <div>
+                    <div style={{width: '300px', height: '200px', padding: '10px', border: '1px solid #f5f5f5'}}>
+                      <img src={idCardCopy} alt="" style={{width: '100%', height: '100%'}}/>
+                    </div>
+                    <Button type="text" size='small' onClick={() => handleDelete('id_card_copy')}>重新上传</Button>
+                  </div>) : (<Upload.Dragger name="files" customRequest={file => onChange(file, 'id_card_copy')}>
+                  <p className="ant-upload-drag-icon">
+                    <Icon type="inbox"/>
+                  </p>
+                  <p className="ant-upload-text"> 点击或者拖动图片到此上传 </p>
+                </Upload.Dragger>),
+              )}
+            </Form.Item>
+            <Form.Item {...formItemLayout} label="身份证反面">
+              {getFieldDecorator('id_card_national', {
+              })(
+                <div>
+                  {
+                    idCardNational ? (
+                      <div>
+                        <div style={{width: '300px', height: '200px', padding: '10px', border: '1px solid #f5f5f5'}}>
+                          <img src={idCardNational} alt="" style={{width: '100%', height: '100%'}}/>
+                        </div>
+                        <Button type="text" size='small' onClick={() => handleDelete('id_card_national')}>重新上传</Button>
+                      </div>) : (
+                      <Upload.Dragger name="files" customRequest={file => onChange(file, 'id_card_national')}>
+                        <p className="ant-upload-drag-icon">
+                          <Icon type="inbox"/>
+                        </p>
+                        <p className="ant-upload-text"> 点击或者拖动图片到此上传 </p>
+                      </Upload.Dragger>)
+                  }
+                </div>
+              )}
             </Form.Item>
             <Form.Item
               wrapperCol={{
@@ -381,7 +459,6 @@ class Step1 extends React.Component {
       </Fragment>
     );
   }
-
 }
 
 export default connect(({merchantsAndApply, dict}) => ({

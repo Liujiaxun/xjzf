@@ -5,7 +5,7 @@ import qCode from '../../../../../assets/2code.png'
 import styles from './index.less';
 const formItemLayout = {
   labelCol: {
-    span: 5,
+    span: 8,
   },
   wrapperCol: {
     span: 19,
@@ -13,18 +13,15 @@ const formItemLayout = {
 };
 const Step3 = props => {
   const { form, data, dispatch, submitting } = props;
-
   if (!data) {
     return null;
   }
-
   const { getFieldDecorator, validateFields, getFieldsValue } = form;
-
   const onPrev = () => {
     if (dispatch) {
       dispatch({
         type: 'merchantsAndApply/saveCurrentStep',
-        payload: 'upload',
+        payload: 'info',
       });
     }
   };
@@ -36,7 +33,7 @@ const Step3 = props => {
         if (dispatch) {
           dispatch({
             type: 'merchantsAndApply/saveCurrentStep',
-            payload: 'result',
+            payload: 'qy',
           });
         }
       }
@@ -54,13 +51,13 @@ const Step3 = props => {
           marginBottom: 24,
         }}
       />
-      <Descriptions column={1}>
+      <Descriptions column={1} style={{textAlign:'center'}}>
         <Descriptions.Item label="付款金额">
           <Statistic value={500} suffix="元" />
         </Descriptions.Item>
-        <Descriptions.Item  >
-          <div style={{width:'250px',height:'250px'}}>
-            <img src={qCode} alt=""/>
+        <Descriptions.Item style={{textAlign:'center'}}>
+          <div >
+            <img src={qCode} alt="" style={{width:'250px',height:'250px',margin: '0 auto'}}/>
           </div>
         </Descriptions.Item>
       </Descriptions>

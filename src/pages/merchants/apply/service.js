@@ -22,3 +22,12 @@ export async function saveMerchantSubmit(data) {
   });
 }
 
+export async function getMerchantsInfo(data) {
+  return request(baseUrl + '/merchant/info', {
+    method: 'get',
+    params: data,
+  });
+}
+
+
+

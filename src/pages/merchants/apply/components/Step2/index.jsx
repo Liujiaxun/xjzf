@@ -1,123 +1,82 @@
-import {Button, Divider, Form, Input, Select, Upload, Icon, message} from 'antd';
-import React, { Fragment, useState } from 'react';
-import { connect } from 'dva';
-
+import {Alert, Button, Descriptions, Divider, Statistic, Form, Input} from 'antd';
+import React from 'react';
+import {connect} from 'dva';
+import qCode from '../../../../../assets/2code.png'
 import styles from './index.less';
-import request from '@/utils/request';
-import { baseUrl } from '@/config/baseConfig';
-import { getToken } from '@/utils/utils';
 
 const formItemLayout = {
   labelCol: {
-    span: 5,
+    span: 8,
   },
   wrapperCol: {
     span: 19,
   },
 };
 
-const Step2 = props => {
-  const { form, dispatch, data } = props;
-  const [img, setImg] = useState('');
-  const [bimg, setBimg] = useState('');
-  if (!data) {
-    return null;
+class Step3 extends React.Component {
+  constructor(props){
+    super(props)
+  }
+  componentDidMount() {
+    if(this.props.id){
+      this.props.dispatch({
+        type: 'merchantsAndApply/getMerchantsInfo',
+        payload: {id: this.props.id}
+      })
+    }
   }
 
-  const { getFieldDecorator, validateFields } = form;
-  const normFile = e => {
-    console.log('Upload event:', e);
-    if (Array.isArray(e)) {
-      return e;
-    }
-    return e && e.fileList;
-  };
-  const onValidateForm = () => {
-    validateFields((err, values) => {
-      if (!err && dispatch) {
+  render() {
+    const {form, dispatch, submitting, info} = this.props;
+    const {validateFields} = form;
+    const {sign_url} = info
+    const onPrev = () => {
         dispatch({
-          type: 'merchantsAndApply/saveStepFormData',
-          payload: {
-            id_card_copy: img,
-            id_card_national: bimg,
-          },
+          type: 'merchantsAndApply/saveCurrentStep',
+          payload: 'pay',
         });
+    };
 
-        dispatch({
-          type: 'merchantsAndApply/saveMerchantSubmit',
-          payload: data
-        })
-      }
-    });
-  };
-  const onPreStep = () => {
-    dispatch({
-      type: 'merchantsAndApply/saveCurrentStep',
-      payload: 'info',
-    });
-  };
-  const onChange = (file, key) => {
-    const formData = new FormData();
-    formData.append('files', file.file);
-    request(baseUrl + '/file/upload_img', {
-      method: 'POST',
-      data: formData,
-    }).then(r => {
-      if (r === 'empty') {
-        file.onError();
-        message.error('上传失败')
-
-      } else {
-        const url = r.files.url;
-        file.onSuccess();
-        message.success('上传成功')
-        if (key === 'id_card_copy') {
-          setImg(url);
-        } else {
-          setBimg(url);
+    const onValidateForm = e => {
+      e.preventDefault();
+      validateFields((err, values) => {
+        if (!err) {
+          if (dispatch) {
+            dispatch({
+              type: 'merchantsAndApply/saveCurrentStep',
+              payload: 'result',
+            });
+          }
         }
-      }
-    });
-  };
-  return (
-    <Fragment>
-      <Form className={styles.stepForm}>
-        <Form.Item label="身份证正面">
-          {getFieldDecorator('id_card_copy', {
-            rules: [
-              {
-                required: true,
-                message: '请上传照片',
-              },
-            ],
-          })(
-            <Upload.Dragger name="files" customRequest={file => onChange(file, 'id_card_copy')}>
-              <p className="ant-upload-drag-icon">
-                <Icon type="inbox" />
-              </p>
-              <p className="ant-upload-text"> 点击或者拖动图片到此上传 </p>
-            </Upload.Dragger>,
-          )}
-        </Form.Item>
+      });
+    };
 
-        <Form.Item label="身份证反面">
-          {getFieldDecorator('id_card_national', {
-            rules: [
-              {
-                required: true,
-                message: '请上传照片',
-              },
-            ],
-          })(
-            <Upload.Dragger name="files" customRequest={file => onChange(file, 'id_card_national')}>
-              <p className="ant-upload-drag-icon">
-                <Icon type="inbox" />
-              </p>
-              <p className="ant-upload-text"> 点击或者拖动图片到此上传 </p>
-            </Upload.Dragger>,
-          )}
-        </Form.Item>
+    return (
+      <Form layout="horizontal" className={styles.stepForm}>
+        <Alert
+          closable
+          showIcon
+          message="正在于商家签约，请扫描下方二维码"
+          style={{
+            marginBottom: 24,
+          }}
+        />
+        <Descriptions column={1} style={{textAlign: 'center'}}>
+          <Descriptions.Item style={{textAlign: 'center'}}>
+            <div>
+              <img src={sign_url || qCode} alt="" style={{width: '250px', height: '250px', margin: '0 auto'}}/>
+            </div>
+          </Descriptions.Item>
+        </Descriptions>
+        <Divider
+          style={{
+            margin: '24px 0',
+          }}
+        />
         <Form.Item
+          style={{
+            marginBottom: 8,
+          }}
           wrapperCol={{
             xs: {
               span: 24,
@@ -130,21 +89,24 @@ const Step2 = props => {
           }}
           label=""
         >
-          <Button onClick={onPreStep}>上一步</Button>
-          <Button type="primary" onClick={onValidateForm} style={{ marginLeft: '10px' }}>
+          <Button
+            onClick={onPrev}
+            style={{
+              marginLeft: 8,
+            }}
+          >
+            上一步
+          </Button>
+          <Button type="primary" onClick={onValidateForm} loading={submitting} style={{marginLeft: '20px'}}>
             下一步
           </Button>
         </Form.Item>
       </Form>
-      <Divider
-        style={{
-          margin: '40px 0 24px',
-        }}
-      />
-    </Fragment>
-  );
-};
+    );
+  }
+}
 
-export default connect(({ merchantsAndApply }) => ({
-  data: merchantsAndApply.step,
-}))(Form.create()(Step2));
+export default connect(({merchantsAndApply, loading}) => ({
+  submitting: loading.effects['merchantsAndApply/submitStepForm'],
+  info: merchantsAndApply.info,
+}))(Form.create()(Step3));

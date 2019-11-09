@@ -3,14 +3,9 @@ import {
   Button,
   Card,
   Col,
-  DatePicker,
-  Divider,
-  Dropdown,
   Form,
   Icon,
   Input,
-  InputNumber,
-  Menu,
   Row,
   Select,
   message, Table,
@@ -108,6 +103,8 @@ class TableList extends Component {
       render: (text, record) => (
         <Fragment>
           <a onClick={() => this.handleUpdateModalVisible(true, record)}>详情</a>
+          <br/>
+          <a onClick={() => this.handleLook(record)}>查看</a>
         </Fragment>
       ),
     },
@@ -118,7 +115,13 @@ class TableList extends Component {
     dispatch({type: 'merchantsAndRecord/fetchMerchantsList'});
 
   }
-
+  handleLook = data => {
+    this.props.dispatch({
+       type: 'merchantsAndApply/saveCurrentStep',
+       payload: 'qy',
+    })
+    this.props.history.push('/merchants/apply?setup=qy&id=' + data.id);
+  }
   handleStandardTableChange = pagination => {
     const {dispatch} = this.props;
     const params = {
