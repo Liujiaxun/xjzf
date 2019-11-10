@@ -44,7 +44,8 @@ class Step1 extends React.Component {
   render() {
     const self = this;
     const {form, dispatch, data, dict} = this.props;
-    const {addressList} = dict
+    const {addressList, contrast} = dict
+    const {map_rate, map_bank} = contrast
     if (!data) {
       return null;
     }
@@ -307,9 +308,11 @@ class Step1 extends React.Component {
                   },
                 ],
               })(
-                <Input
-                  placeholder="请输入开户银行"
-                />
+                <Select>
+                      {
+                        map_bank.map((item, i) => (<Option key={i} value={item}>{item}</Option>))
+                      }
+                  </Select>
               )}
             </Form.Item>
             <Form.Item {...formItemLayout} label="银行卡号">

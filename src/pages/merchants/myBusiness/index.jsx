@@ -13,7 +13,7 @@ import {
   Menu,
   Row,
   Select,
-  message,
+  message, Table,
 } from 'antd';
 import React, { Component, Fragment } from 'react';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
@@ -35,7 +35,7 @@ const statusMap = ['default', 'processing', 'success', 'error'];
 const status = ['关闭', '运行中', '已上线', '异常'];
 
 @connect(({ merchantsAndBusiness, loading }) => ({
-  merchantsAndBusiness,
+  data:merchantsAndBusiness.data ,
   loading: loading.models.merchantsAndBusiness,
 }))
 class TableList extends Component {
@@ -388,9 +388,9 @@ class TableList extends Component {
   }
 
   render() {
-    const { loading } = this.props;
+    const { loading, data } = this.props;
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
-
+    const { list, pagination} = data;
     const parentMethods = {
       handleAdd: this.handleAdd,
       handleModalVisible: this.handleModalVisible,
@@ -404,13 +404,14 @@ class TableList extends Component {
         <Card bordered={false} bodyStyle={{ padding: 0 }}>
           <div className={styles.tableList}>
             {/*<div className={styles.tableListForm}>{this.renderForm()}</div>*/}
-            <StandardTable
-              selectedRows={selectedRows}
+            <Table
+              rowKey={'id'}
+              dataSource={list}
               loading={loading}
-              data={[]}
               columns={this.columns}
-              onSelectRow={this.handleSelectRows}
-              onChange={this.handleStandardTableChange}
+              pagination={pagination}
+              selectedRows={selectedRows}
+              onChange={this.handleTableChange}
             />
           </div>
         </Card>

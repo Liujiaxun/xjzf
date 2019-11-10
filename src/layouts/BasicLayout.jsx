@@ -97,6 +97,9 @@ const BasicLayout = props => {
             props.history.push('/user/login');
           }
           dispatch({ type: 'dict/fetchAddressList' });
+          dispatch({ type: 'dict/fetchSettingData' });
+          dispatch({ type: 'dict/fetchUserSta' });
+          dispatch({ type: 'dict/fetchContrastList' });
         })
         .catch(err => {
           console.log(err, 'er');

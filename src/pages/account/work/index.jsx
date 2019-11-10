@@ -9,6 +9,7 @@ import Articles from './components/Articles';
 import Applications from './components/Applications';
 import styles from './Center.less';
 import {Bar} from "@/pages/dashboard/analysis/components/Charts";
+import moment from 'moment';
 
 const data = [
   {x: "1月", y: 428},
@@ -25,10 +26,11 @@ const data = [
   {x: "12月", y: 943}
 ];
 
-@connect(({loading, accountAndWork}) => {
+@connect(({loading, user, dict}) => {
   return {
-    currentUser: accountAndWork.currentUser,
-    currentUserLoading: loading.effects['accountAndcenter/fetchCurrent'],
+    user: user.currentUser,
+    dict,
+    currentUserLoading: loading.effects['user/getUserInfo'],
   }
 })
 class Center extends PureComponent {
@@ -37,23 +39,37 @@ class Center extends PureComponent {
     newTags: [],
     inputVisible: false,
     inputValue: '',
-    tabKey: 'articles',
   };
   input = undefined;
 
   componentDidMount() {
+
+
     const {dispatch} = this.props;
     dispatch({
-      type: 'accountAndcenter/fetchCurrent',
-    });
+      type: 'dict/fetchStaOrderDaily',
+      payload: {
+        begin_time: moment().subtract(12, 'days').format('YYYY-MM-DD'),
+        end_time: (new moment()).format('YYYY-MM-DD')
+      }
+    })
+
     dispatch({
-      type: 'accountAndcenter/fetch',
-    });
+      type: 'dict/fetchStaOrderHour',
+      payload: {
+        begin_time: (new moment()).format('YYYY-MM-DD_00'),
+        end_time: (new moment()).format('YYYY-MM-DD__23')
+      }
+    })
   }
 
-
   render() {
-    const {currentUser, currentUserLoading} = this.props;
+    const {user, currentUserLoading, dict} = this.props;
+    const {settingData, StaOrderDaily, StaOrderHour, userSta} = dict;
+    const {kefu, invite} = settingData;
+    const { member_info } = user;
+    const data1 = StaOrderDaily.map(item => ({...item, x: item.day, y: item.amount}))
+    const data2 = StaOrderHour.map(item => ({...item, y: item.amount, x: (item.hour).split('_')[1]}))
     const dataLoading = false;
     return (
       <GridContent>
@@ -69,35 +85,51 @@ class Center extends PureComponent {
               {!dataLoading ? (
                 <div>
                   <div className={styles.avatarHolder}>
-                    <img alt="" src={currentUser.avatar}/>
-                    <div className={styles.name}>{currentUser.name}</div>
-                    <div className={styles.price}>余额 8.88 <Button type="danger" size="small">充值</Button></div>
+                    <img alt="" src={user.headurl}/>
+                    <div className={styles.name}>{user.realname || user.nickname}</div>
+                    <div className={styles.price}>余额 {user.amount} <Button type="danger" size="small">充值</Button></div>
                   </div>
-                  <Divider solid/>
+                  <Divider solid={true}/>
                   <div className={styles.tags}>
                     <div className={styles.tagsTitle}>用户身份</div>
                     <div className={styles.detail}>
                       <p className={styles.item}>
-                        <span>普通会员</span> <span> <Button size="small" type="primary">升级</Button></span>
+                        <span> {member_info.name} </span>
+                        <span> <Button size="small" type="primary">升级</Button></span>
                       </p>
                       <p className={styles.item}>
-                        <span>商户价格</span> <span> 180/个 </span>
+                        <span>商户价格</span> <span> {member_info.merchant_price}/个 </span>
                       </p>
                       <p className={styles.item}>
-                        <span>商户总数</span> <span> 30</span>
+                        <span>商户总数</span> <span> {member_info.merchant_max}</span>
+                      </p>
+                      {/*credit_discount: "8折"*/}
+                      {/*merchant_price: "180"*/}
+                      {/*name: "普通会员"*/}
+                      {/*order_api_qps: "30"*/}
+                      {/*total_amount_day: "100万"*/}
+                      <p className={styles.item}>
+                        <span>日交易额</span> <span>{member_info.total_amount_day}</span>
                       </p>
                       <p className={styles.item}>
-                        <span>日交易额</span> <span>100万></span>
+                        <span>微豆折扣</span> <span>{member_info.credit_discount}</span>
                       </p>
                       <p className={styles.item}>
-                        <span>微豆折扣</span> <span> 8折</span>
-                      </p>
-                      <p className={styles.item}>
-                        <span>订单并发调用</span> <span> 30/秒 </span>
+                        <span>订单并发调用</span> <span> {member_info.order_api_qps}/秒 </span>
                       </p>
                       <p>
                         <span>会员有效期</span>
-                        <span style={{float: 'right'}}>2019-07-09</span>
+                        <span style={{float: 'right'}}>{user.member_endtime}</span>
+                      </p>
+                      <p>
+                        <span>access_key:</span>
+                        <br/>
+                        <span style={{float: 'left'}}>{user.access_key}</span>
+                      </p>
+                      <p>
+                        <span>secret_key:</span>
+                        <br/>
+                        <span style={{float: 'left'}}>{user.secret_key}</span>
                       </p>
                     </div>
                   </div>
@@ -105,15 +137,15 @@ class Center extends PureComponent {
                   <div className={styles.tags}>
                     <div className={styles.tagsTitle}>邀佣图片</div>
                     <div className={styles.tagImg}>
-                      <img src="" alt=""/>
+                      <img src={invite.adimg} alt="" style={{width:'100%',height:'100%'}}/>
                     </div>
                   </div>
                   <Divider
                     solid
                   />
                   <div className={styles.team}>
-                    <p>客服微信: xiaoweijufu</p>
-                    <p>客服电话: 18162197341</p>
+                    <p>客服微信: {kefu.weixin}</p>
+                    <p>客服电话: {kefu.tele}</p>
                   </div>
                 </div>
               ) : null}
@@ -129,10 +161,10 @@ class Center extends PureComponent {
                         <span>交易额</span> <Icon type="exclamation-circle"/>
                       </div>
                       <div className={styles.body}>
-                        ¥ 9000
+                        ¥ {userSta.total_order_amount}
                       </div>
                       <div className={styles.footer}>
-                        日交易额: ¥ 12900
+                        日交易额: ¥ {userSta.daily_order_amount}
                       </div>
                     </div>
                   </Card>
@@ -144,10 +176,10 @@ class Center extends PureComponent {
                         <span>交易量</span> <Icon type="exclamation-circle"/>
                       </div>
                       <div className={styles.body}>
-                        9000
+                        {userSta.total_order_count}
                       </div>
                       <div className={styles.footer}>
-                        日交易量: 12900
+                        日交易量: {userSta.daily_order_count}
                       </div>
                     </div>
                   </Card>
@@ -159,13 +191,13 @@ class Center extends PureComponent {
                         <span>微豆余额</span> <Icon type="exclamation-circle"/>
                       </div>
                       <div className={styles.body}>
-                        9000
+                        {userSta.total_credit_amount}
                       </div>
                       <div className={styles.footer}>
                         <div className={styles.tool}>
                           <Button type="primary" size="small">充值</Button>
                         </div>
-                        日消耗: ¥ 12900
+                        日消耗: ¥ {userSta.daily_credit_amount}
                       </div>
                     </div>
                   </Card>
@@ -180,7 +212,7 @@ class Center extends PureComponent {
                 <div className={styles.body}>
                   <Bar
                     height={292}
-                    data={data}
+                    data={data1}
                   />
                 </div>
               </div>
@@ -192,7 +224,7 @@ class Center extends PureComponent {
                 <div className={styles.body}>
                   <Bar
                     height={292}
-                    data={data}
+                    data={data2}
                   />
                 </div>
               </div>

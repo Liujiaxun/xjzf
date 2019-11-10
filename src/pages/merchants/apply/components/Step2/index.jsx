@@ -17,15 +17,6 @@ class Step3 extends React.Component {
   constructor(props){
     super(props)
   }
-  componentDidMount() {
-    if(this.props.id){
-      this.props.dispatch({
-        type: 'merchantsAndApply/getMerchantsInfo',
-        payload: {id: this.props.id}
-      })
-    }
-  }
-
   render() {
     const {form, dispatch, submitting, info} = this.props;
     const {validateFields} = form;
@@ -89,17 +80,17 @@ class Step3 extends React.Component {
           }}
           label=""
         >
-          <Button
-            onClick={onPrev}
-            style={{
-              marginLeft: 8,
-            }}
-          >
-            上一步
-          </Button>
-          <Button type="primary" onClick={onValidateForm} loading={submitting} style={{marginLeft: '20px'}}>
-            下一步
-          </Button>
+          {/*<Button*/}
+          {/*  onClick={onPrev}*/}
+          {/*  style={{*/}
+          {/*    marginLeft: 8,*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  上一步*/}
+          {/*</Button>*/}
+          {/*<Button type="primary" onClick={onValidateForm} loading={submitting} style={{marginLeft: '20px'}}>*/}
+          {/*  下一步*/}
+          {/*</Button>*/}
         </Form.Item>
       </Form>
     );

@@ -4,7 +4,9 @@ import { routerRedux } from 'dva/router';
 const UserModel = {
   namespace: 'user',
   state: {
-    currentUser: {},
+    currentUser: {
+      member_info:{}
+    },
   },
   effects: {
     *getUserInfo(_, { call, put }) {

@@ -90,9 +90,9 @@ const Step3 = props => {
         >
           上一步
         </Button>
-        <Button type="primary" onClick={onValidateForm} loading={submitting} style={{marginLeft: '20px'}}>
-          下一步
-        </Button>
+        {/*<Button type="primary" onClick={onValidateForm} loading={submitting} style={{marginLeft: '20px'}}>*/}
+        {/*  下一步*/}
+        {/*</Button>*/}
       </Form.Item>
     </Form>
   );

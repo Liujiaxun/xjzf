@@ -5,7 +5,7 @@ import { Link } from 'dva/router'
 import styles from './index.less';
 
 const Step5 = props => {
-  const { data, dispatch } = props;
+  const { data, dispatch, info } = props;
 
   if (!data) {
     return null;
@@ -13,14 +13,6 @@ const Step5 = props => {
 
   const { payAccount, receiverAccount, receiverName, amount } = data;
 
-  const onFinish = () => {
-    if (dispatch) {
-      dispatch({
-        type: 'merchantsAndApply/saveCurrentStep',
-        payload: 'info',
-      });
-    }
-  };
 
   const information = (
     <div className={styles.information}>
@@ -40,18 +32,22 @@ const Step5 = props => {
     </Link>
   );
   return (
-    <Result
-      status="success"
-      title="申请成功"
-      subTitle="可返回我的商户查看"
-      extra={extra}
-      className={styles.result}
-    >
-      {/*{information}*/}
-    </Result>
+    <>
+      <Result
+        status={info.status === '3' ? 'success' :"error" }
+        title={info.status === '3' ? '申请成功' :"申请失败" }
+        subTitle={info.status === '3' ? '可返回我的商户查看' : '可返回我的申请查看' }
+        extra={info.status === '3' ? extra : null }
+        className={styles.result}
+      >
+        {/*{information}*/}
+      </Result>
+    </>
+
   );
 };
 
 export default connect(({ merchantsAndApply }) => ({
   data: merchantsAndApply.step,
+  info: merchantsAndApply.info,
 }))(Step5);

@@ -22,15 +22,20 @@ const FormItem = Form.Item;
 const {Option} = Select;
 
 
-const statusMap = ['default', 'processing', 'success', 'error'];
-const status = ['关闭', '运行中', '已上线', '异常'];
+const statusMap = {
+  '0': 'default',
+  '1': 'processing',
+  '2': 'success',
+  '3': 'success',
+  '-2': 'error',
+  '-3': 'error',
+};
 const label = {
-  '0': '待完善资料',
-  '1': '待审核',
-  '2': '审核成功待签约',
-  '3': '已签约',
-  '-2': '审核驳回',
-  '-3': '冻结',
+  '0': 'pay',
+  '1': 'sh',
+  '2': 'qy',
+  '3': 'result',
+  '-2': 'sh',
 }
 
 /* eslint react/no-multi-comp:0 */
@@ -57,7 +62,7 @@ class TableList extends Component {
     },
     {
       title: '收款名称',
-      dataIndex: 'merchant_shortname',
+      dataIndex: 'account_name',
     },
     {
       title: '申请姓名',
@@ -67,16 +72,13 @@ class TableList extends Component {
     {
       title: '费率',
       dataIndex: 'rate',
-      sorter: true,
-      align: 'right',
-      render: val => `${val} %`,
       needTotal: true,
     },
     {
       title: '支付状态',
       dataIndex: 'status',
-      render(val) {
-        return  <span>未支付</span>
+      render(val,r) {
+        return  <span>{r.status !== "0" ? '已支付': '未支付'}</span>
       },
     },
     {
@@ -89,8 +91,11 @@ class TableList extends Component {
     },
     {
       title: '进度',
-      sorter: true,
-      render: (val, r) => <Badge status={statusMap[r.status+'']} text={label[r.status+'']}/>,
+      render: (val, r) => <Badge status={statusMap[r.status+'']} text={r.status_string}/>,
+    },
+    {
+      title: '状态',
+      dataIndex: 'merchant_shortname',
     },
     {
       title: '申请时间',
@@ -104,7 +109,10 @@ class TableList extends Component {
         <Fragment>
           <a onClick={() => this.handleUpdateModalVisible(true, record)}>详情</a>
           <br/>
-          <a onClick={() => this.handleLook(record)}>查看</a>
+          {
+           record.status !== '-3' ? <a onClick={() => this.handleLook(record)}>查看申请状态</a> : null
+          }
+
         </Fragment>
       ),
     },
@@ -116,11 +124,8 @@ class TableList extends Component {
 
   }
   handleLook = data => {
-    this.props.dispatch({
-       type: 'merchantsAndApply/saveCurrentStep',
-       payload: 'qy',
-    })
-    this.props.history.push('/merchants/apply?setup=qy&id=' + data.id);
+    console.log(data, label[data.status]);
+    this.props.history.push('/merchants/apply?setup='+ label[data.status] +'&id=' + data.id);
   }
   handleStandardTableChange = pagination => {
     const {dispatch} = this.props;
@@ -404,6 +409,7 @@ class TableList extends Component {
             <Table
               rowKey={'id'}
               dataSource={list}
+              loading={loading}
               columns={this.columns}
               pagination={pagination}
               onChange={this.handleTableChange}
